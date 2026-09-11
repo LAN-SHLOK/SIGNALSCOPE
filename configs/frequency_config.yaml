@@ -1,0 +1,22 @@
+﻿fft:
+  image_size: 224
+  log_scale: true
+
+radial_spectrum:
+  num_bins: 64
+  normalize: true
+
+srm_kernels:
+  enabled: true
+  kernel_size: 5
+
+autocorrelation:
+  enabled: true
+  crop_center: 64
+
+color_spaces:
+  convert_ycrcb: true
+  convert_hsv: true
+
+jpeg_simulation:
+  quality_levels: [50, 70, 85, 95]

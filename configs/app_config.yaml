@@ -1,0 +1,18 @@
+﻿app:
+  title: "Forensic Image Detector"
+  icon: "🔍"
+  layout: "wide"
+  sidebar_state: "expanded"
+
+upload:
+  max_file_size_mb: 50
+  allowed_types: ["jpg", "jpeg", "png", "webp", "tiff", "bmp"]
+
+display:
+  default_opacity: 0.5
+  colormap: "jet"
+  confidence_threshold: 0.5
+
+batch:
+  max_files: 100
+  export_format: "csv"

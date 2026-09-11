@@ -1,0 +1,24 @@
+﻿backbone:
+  name: "dinov2_vitb14_reg"
+  source: "torch.hub"
+  frozen: true
+  output_dim: 768
+
+fusion_head:
+  input_dim: 832
+  hidden_layers: [512, 256, 128]
+  dropout: 0.3
+  activation: "gelu"
+  output_dim: 2
+
+stacker:
+  lgbm:
+    n_estimators: 500
+    learning_rate: 0.05
+    max_depth: 6
+    num_leaves: 31
+    subsample: 0.8
+  meta_learner:
+    type: "logistic_regression"
+    C: 1.0
+    max_iter: 1000
