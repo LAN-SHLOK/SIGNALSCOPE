@@ -1,10 +1,19 @@
 # ==============================================================================
-# SignalScope — Multi-Stage Production Container (Role 5)
-# Serves both high-performance FastAPI REST server (port 8000) and Streamlit (port 8501)
+# SignalScope — Multi-Stage Fullstack Container
+# Stage 1: Build React Frontend UI
+# Stage 2: Serve High-Performance FastAPI + React UI (Port 8000)
 # ==============================================================================
 
-# Stage 1: Runtime Environment
-FROM python:3.11-slim
+# Stage 1: Frontend Builder
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package.json ./
+RUN npm install --no-package-lock
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Python Runtime Environment
+FROM python:3.11-slim AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -28,17 +37,19 @@ COPY src/ src/
 COPY app/ app/
 COPY api/ api/
 COPY configs/ configs/
-COPY data/samples/ data/samples/
+COPY data/ data/
+COPY weights/ weights/
 COPY predict.py .
 
-# Copy pre-compiled React frontend bundle if present
-COPY frontend/dist/ frontend/dist/
+# Copy compiled React frontend bundle from stage 1
+COPY --from=frontend-builder /app/frontend/dist/ frontend/dist/
 
-# Ports: 8000 (FastAPI + Fullstack UI), 8501 (Streamlit Fallback)
-EXPOSE 8000 8501
+# Expose port 8000 (FastAPI serving React UI & REST API)
+EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD curl --fail http://localhost:8000/api/health || exit 1
 
-# Default launch: High-Performance Fullstack FastAPI Engine
+# Launch FastAPI Engine (serves React app at http://localhost:8000)
 ENTRYPOINT ["uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+
