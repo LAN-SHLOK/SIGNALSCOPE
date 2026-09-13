@@ -1,0 +1,6 @@
+{
+  "name": "SignalScope — AI Image Authenticity & Forensic Detector",
+  "description": "Single-page interactive AI image detector with single and batch image scanning, clear heatmaps, plain explanations, and atmospheric background transitions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
