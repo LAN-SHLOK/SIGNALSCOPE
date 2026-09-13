@@ -1,50 +1,183 @@
-﻿# Byte-compiled / optimized / DLL files
+# ==============================================================================
+# SIGNALSCOPE — Industrial GitIgnore & Security Policy
+# Zero-leakage policy: Prevents secret leaks, large binaries, dataset bloat,
+# local configurations, and OS/editor metadata.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Security, Secrets & Credentials (CRITICAL - NEVER COMMIT)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*.asc
+*.gpg
+*credentials*.json
+client_secrets*.json
+*token*.json
+auth*.json
+id_rsa*
+id_ed25519*
+*.api_key*
+.streamlit/secrets.toml
+.streamlit/credentials.toml
+
+# ------------------------------------------------------------------------------
+# 2. Large Model Weights & Checkpoints (Host on GitHub Releases)
+# ------------------------------------------------------------------------------
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+*.onnx
+*.tflite
+*.joblib
+*.pkl
+*.h5
+weights/*
+!weights/.gitkeep
+!weights/README.md
+
+# ------------------------------------------------------------------------------
+# 3. Feature Caches, Embeddings & Large Arrays
+# ------------------------------------------------------------------------------
+*.npy
+*.npz
+*.parquet
+*.feather
+*.h5
+*.hdf5
+
+# ------------------------------------------------------------------------------
+# 4. Datasets & Raw Media Archives
+# ------------------------------------------------------------------------------
+data/raw/
+data/processed/
+data/train/
+data/test/
+data/val/
+data/external/
+train/
+test/
+val/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.mp4
+*.mov
+*.avi
+video.mp4
+!data/.gitkeep
+!data/samples/
+
+# ------------------------------------------------------------------------------
+# 5. Python Bytecode, Caches & Environments
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Distribution / packaging
-dist/
-build/
-*.egg-info/
-*.egg
+*.so
+.Python
 
 # Virtual environments
 venv/
 .venv/
 env/
+ENV/
+env.bak/
+venv.bak/
 
-# IDE
-.vscode/
+# Testing & Coverage caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Build & packaging
+dist/
+build/
+*.egg-info/
+*.egg
+installed_files.txt
+
+# ------------------------------------------------------------------------------
+# 6. Experiment Tracking, Outputs & Logs
+# ------------------------------------------------------------------------------
+logs/
+*.log
+wandb/
+mlruns/
+lightning_logs/
+outputs/
+output/
+runs/
+*.bak
+*.tmp
+*~
+
+# ------------------------------------------------------------------------------
+# 7. IDE, Editors & OS Files
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
+.history/
+*.sublime-project
+*.sublime-workspace
 
-# Environment variables
-.env
-
-# Model weights (hosted on GitHub Releases)
-weights/*.pth
-weights/*.joblib
-weights/*.pkl
-!weights/.gitkeep
-
-# Dataset (too large for git)
-data/raw/
-data/processed/
-!data/.gitkeep
-!data/samples/
-
-# Outputs
-outputs/
-*.log
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Jupyter
+# Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+*/.ipynb_checkpoints/*
 
-# Docker
+# ------------------------------------------------------------------------------
+# 8. Docker & Local Overrides
+# ------------------------------------------------------------------------------
 docker/.env
+docker-compose.override.yml
+
+# ------------------------------------------------------------------------------
+# 9. Internal Working Documents & Assignment PDFs
+# ------------------------------------------------------------------------------
+statement2.pdf
+implementation_plan.md
+team_roles.md
+
+# ------------------------------------------------------------------------------
+# 10. React / Vite Frontend Build Artifacts
+# ------------------------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
