@@ -111,7 +111,7 @@ def _generate_saliency_heatmap(gray_img: np.ndarray) -> np.ndarray:
 class AnalysisService:
     """
     Central business logic service.
-    Exposes clean methods consumable by Streamlit today and FastAPI/React tomorrow.
+    Exposes clean methods consumable by the FastAPI server and React client.
     """
 
     def __init__(self):

@@ -54,15 +54,14 @@ SignalScope employs a **Dual-Stream Multi-Modal Pipeline** to detect synthetic a
 
 ### Option 1: Docker (Fastest & Containerized)
 
-Run both the FastAPI backend and Streamlit dashboard inside an isolated multi-stage container:
+Run the containerized FastAPI fullstack application:
 
 ```bash
 docker compose up --build
 ```
 
 - **FastAPI Backend & API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **FastAPI Web UI**: [http://localhost:8000](http://localhost:8000)
-- **Streamlit Forensic Lab**: [http://localhost:8501](http://localhost:8501)
+- **SignalScope Web UI**: [http://localhost:8000](http://localhost:8000)
 
 ---
 
@@ -110,14 +109,6 @@ python predict.py --image_dir path/to/folder/ --output reports/results.csv
 
 ---
 
-### Option 4: Streamlit Forensic Dashboard
-
-```bash
-streamlit run app/streamlit_app.py
-```
-
----
-
 ## Project Structure
 
 ```
@@ -126,17 +117,15 @@ SIGNALSCOPE/
 │   ├── __init__.py
 │   └── server.py                 # FastAPI REST API & static web server
 ├── app/
-│   ├── assets/custom.css         # Brutalist styling for Streamlit
-│   ├── components/               # Gauges, metadata panels, spectrum plots
 │   ├── schemas/contracts.py      # Pydantic data models & verdict tiers
-│   ├── services/analysis_service.py # Core forensic analysis singleton
-│   └── streamlit_app.py          # Streamlit UI dashboard
+│   └── services/analysis_service.py # Core forensic analysis singleton
 ├── data/
 │   └── samples/                  # Curated synthetic, authentic & C2PA test samples
 ├── docs/
 │   ├── api_reference.md          # REST API specifications
 │   ├── architecture.md           # Dual-stream deep dive & formulas
-│   └── deployment_guide.md       # Docker & production setup
+│   └── deployment_guide.md       # Production setup
+
 ├── frontend/
 │   ├── src/
 │   │   ├── components/           # Hero, Scanner, Pipeline, Trust & FAQ

@@ -25,8 +25,7 @@ auth*.json
 id_rsa*
 id_ed25519*
 *.api_key*
-.streamlit/secrets.toml
-.streamlit/credentials.toml
+
 
 # ------------------------------------------------------------------------------
 # 2. Large Model Weights & Checkpoints (Host on GitHub Releases)

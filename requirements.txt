@@ -25,11 +25,10 @@ seaborn>=0.12.0
 # Stream 6: Metadata & Provenance
 piexif>=1.1.3
 
-# Stream 7: Web App, REST API & CLI
-streamlit>=1.28.0
+# Stream 7: REST API & CLI
 fastapi>=0.100.0
 uvicorn>=0.23.0
 python-multipart>=0.0.6
 pandas>=2.0.0
-plotly>=5.15.0
+
 

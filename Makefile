@@ -1,4 +1,4 @@
-﻿.PHONY: install install-dev train evaluate test lint format docker-up docker-down clean
+.PHONY: install install-dev train evaluate test lint format docker-up docker-down clean
 
 install:
 	pip install -r requirements.txt
@@ -13,25 +13,28 @@ evaluate:
 	python scripts/evaluate.py
 
 predict:
-	python src/model/predict.py --image $(IMAGE)
+	python predict.py --image $(IMAGE)
 
-app:
-	streamlit run app/streamlit_app.py
+server:
+	uvicorn api.server:app --host 0.0.0.0 --port 8000 --reload
+
+frontend:
+	cd frontend && npm run dev
 
 test:
 	pytest tests/ -v --tb=short
 
 lint:
-	ruff check src/ app/ scripts/ tests/
+	ruff check src/ api/ app/ scripts/ tests/
 
 format:
-	black src/ app/ scripts/ tests/
+	black src/ api/ app/ scripts/ tests/
 
 docker-up:
-	docker compose -f docker/docker-compose.yml up --build
+	docker compose up --build
 
 docker-down:
-	docker compose -f docker/docker-compose.yml down
+	docker compose down
 
 download-weights:
 	python scripts/download_weights.py

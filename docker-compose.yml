@@ -11,5 +11,7 @@ services:
       - ./weights:/app/weights:ro
       - ./configs:/app/configs:ro
       - ./data:/app/data:ro
+    environment:
+      - PYTHONUNBUFFERED=1
     restart: unless-stopped
 

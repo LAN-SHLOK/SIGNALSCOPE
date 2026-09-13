@@ -333,7 +333,7 @@ export const RoadmapAndScoring: React.FC = () => {
             {/* Docker execution box */}
             <div className="mt-6 pt-4 border-t border-[#1b3623] text-xs text-gray-400">
               <span className="text-white font-bold block mb-1 font-mono-code">Docker Reproducibility:</span>
-              <code>docker build -t signalscope . && docker run -p 8501:8501 signalscope</code>
+              <code>docker build -t signalscope . && docker run -p 8000:8000 signalscope</code>
             </div>
           </div>
         </div>

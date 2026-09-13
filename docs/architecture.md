@@ -43,7 +43,6 @@ SignalScope is an industrial dual-stream forensic pipeline that determines wheth
 ## 2. Decoupled Architecture Principles
 - **Dual-Interface Flexibility**:
   - Primary Production UI: React + Vite + Motion (`frontend/`)
-  - Standalone Python Fallback: Streamlit (`app/streamlit_app.py`)
-  - Headless / Batch CLI: Python Script (`scripts/batch_predict.py`)
+  - Headless / Batch CLI: Python Script (`predict.py`, `scripts/batch_predict.py`)
 - **Domain Contracts**: All layers communicate via strictly typed data models defined in `app/schemas/contracts.py` and `frontend/src/types/signalscope.ts`.
 - **Zero-Leakage Security Policy**: Model weights, feature arrays, datasets, API keys, and video media are excluded via `.gitignore`.
