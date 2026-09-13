@@ -1,56 +1,56 @@
-﻿[build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
-
-[project]
-name = "forensic-image-detector"
-version = "0.1.0"
-description = "AI-powered forensic image tampering detector using DINOv2, FFT analysis, and explainable AI"
-readme = "README.md"
-license = {text = "MIT"}
-requires-python = ">=3.10"
-authors = [
-    {name = "SIH Team"},
-]
-
-dependencies = [
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
-    "timm>=0.9.0",
-    "scipy>=1.11.0",
-    "numpy>=1.24.0",
-    "opencv-python-headless>=4.8.0",
-    "albumentations>=1.3.0",
-    "Pillow>=10.0.0",
-    "lightgbm>=4.0.0",
-    "scikit-learn>=1.3.0",
-    "joblib>=1.3.0",
-    "pytorch-grad-cam>=1.5.0",
-    "matplotlib>=3.7.0",
-    "seaborn>=0.12.0",
-    "piexif>=1.1.3",
-    "streamlit>=1.28.0",
-    "pandas>=2.0.0",
-    "plotly>=5.15.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "black>=23.0",
-    "ruff>=0.1.0",
-    "isort>=5.12",
-]
-
-[tool.black]
-line-length = 100
-target-version = ["py310", "py311"]
-
-[tool.ruff]
-line-length = 100
-target-version = "py310"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-v --tb=short"
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "forensic-image-detector"
+version = "0.1.0"
+description = "AI-powered forensic image tampering detector using DINOv2, FFT analysis, and explainable AI"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "SIH Team"},
+]
+
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "timm>=0.9.0",
+    "scipy>=1.11.0",
+    "numpy>=1.24.0",
+    "opencv-python-headless>=4.8.0",
+    "albumentations>=1.3.0",
+    "Pillow>=10.0.0",
+    "lightgbm>=4.0.0",
+    "scikit-learn>=1.3.0",
+    "joblib>=1.3.0",
+    "pytorch-grad-cam>=1.5.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "piexif>=1.1.3",
+    "streamlit>=1.28.0",
+    "pandas>=2.0.0",
+    "plotly>=5.15.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "isort>=5.12",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
