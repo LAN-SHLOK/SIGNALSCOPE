@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Intermediate Feature Cache (thousands of .npy files)
+cache/
+
+# Large Datasets (120,000 raw training/test images - do not push to Git)
+train/
+test/
+data/
+
+# Model Backups (keep primary weights: detector.pth, calibrator.pth, stacker.joblib)
+model/weights/*_backup.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
