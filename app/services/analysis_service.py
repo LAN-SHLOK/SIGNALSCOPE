@@ -259,6 +259,10 @@ class AnalysisService:
 
         if tier == VerdictTier.CONFIDENT_REAL or (tier == VerdictTier.UNCERTAIN and meta_report.trust_signal in ("LIKELY_AUTHENTIC_HARDWARE", "STRONG_AUTHENTIC")):
             generator_family = "Real Camera"
+        elif meta_report.is_screenshot:
+            generator_family = "Screen Capture (Re-capture)"
+        elif tier == VerdictTier.UNCERTAIN:
+            generator_family = "Inconclusive / Mixed Signals"
 
         verdict_res = VerdictResult(
             label=final_label,
@@ -359,6 +363,17 @@ class AnalysisService:
                         location="Global frequency spectrum",
                     )
                 )
+
+        if meta_report.is_screenshot:
+            cues.append(
+                ForensicCue(
+                    cue_type="Digital Screen Capture",
+                    description=f"Image matches digital framebuffer screen capture ({meta_report.screenshot_reason or 'Display resolution'}). Optical camera sensor features are absent.",
+                    severity="info",
+                    confidence=0.90,
+                    location="System framebuffer",
+                )
+            )
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0
 

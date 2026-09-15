@@ -28,6 +28,8 @@ def generate_provenance_report(image_source: Any) -> MetadataReport:
         trust_signal = "CONFIRMED_SYNTHETIC"
     elif c2pa_res.get("status") == "VALID_AUTHENTIC" and audit_res["has_authentic_camera_tags"]:
         trust_signal = "STRONG_AUTHENTIC"
+    elif exif_dict.get("is_screenshot"):
+        trust_signal = "SCREENSHOT_RECAPTURE"
     elif not exif_dict.get("has_exif") and not c2pa_res.get("present"):
         trust_signal = "SUSPICIOUS_STRIPPED"
     elif audit_res["has_authentic_camera_tags"]:
@@ -55,6 +57,8 @@ def generate_provenance_report(image_source: Any) -> MetadataReport:
         anomalies=audit_res["anomalies"],
         trust_signal=trust_signal,
         raw_tags=exif_dict.get("raw_tags", {}),
+        is_screenshot=exif_dict.get("is_screenshot", False),
+        screenshot_reason=exif_dict.get("screenshot_reason"),
     )
 
 
@@ -118,10 +122,19 @@ def fuse_cv_with_provenance(
 
     # Case 4: Stripped metadata
     elif metadata_report.trust_signal == "SUSPICIOUS_STRIPPED":
-        # Stripped EXIF is very common on social media and AI; slight boost to confidence if leaning AI
-        if cv_confidence > 0.60:
+        # Stripped EXIF is very common on social media and AI; boost only if leaning strongly toward AI
+        if cv_confidence >= 0.75:
             adjusted_conf = min(0.98, cv_confidence * 1.05)
             action_note = "Caution: Metadata is stripped. Forensic assessment relies on pixel and frequency features."
+        elif cv_confidence <= 0.35:
+            action_note = "Metadata is stripped by platform, but natural visual patterns indicate authentic media."
+        else:
+            action_note = "Metadata is stripped. Compression prevents definitive hardware validation. Human review recommended."
 
-    final_label = "AI-generated" if adjusted_conf >= 0.50 else "Authentic Real"
+    if adjusted_conf >= 0.75:
+        final_label = "AI-generated"
+    elif adjusted_conf <= 0.25:
+        final_label = "Authentic Real"
+    else:
+        final_label = "Uncertain — Forensic Conflict"
     return round(adjusted_conf, 4), final_label, action_note

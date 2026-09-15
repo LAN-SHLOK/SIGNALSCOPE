@@ -184,7 +184,18 @@ def predict(image_path: str, explain: bool = False, use_tta: bool = False, devic
         # Stacking ensemble blend with exact 7575-dim features
         try:
             stacked_prob = stacker.predict(flat_feat_np, calibrated_prob)
-            final_confidence = float(stacked_prob)
+
+            # Forensic Conflict Arbiter:
+            # If the 304M DINOv2 foundation model indicates authentic real content (calibrated_prob < 0.45),
+            # but the auxiliary feature stacker spikes (stacked_prob >= 0.70) due to social media downsampling,
+            # erased Bayer CFA sensor noise, or JPEG DCT compression blocks:
+            if calibrated_prob < 0.45 and stacked_prob >= 0.70:
+                # Prioritize foundation semantic representation and prevent compression-induced false positives
+                final_confidence = float(0.70 * calibrated_prob + 0.30 * stacked_prob)
+                if final_confidence > 0.50:
+                    final_confidence = 0.50  # Responsible Uncertain tier
+            else:
+                final_confidence = float(stacked_prob)
         except Exception as e:
             final_confidence = calibrated_prob
 

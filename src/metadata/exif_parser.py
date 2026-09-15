@@ -22,6 +22,8 @@ def extract_exif_signals(image_source: Any) -> Dict[str, Any]:
     
     has_cam = audit_data.get("has_authentic_camera_tags", False)
     is_ai = audit_data.get("is_ai_software_detected", False)
+    is_screen = exif_data.get("is_screenshot", False)
+    screen_reason = exif_data.get("screenshot_reason", "")
     
     if is_ai:
         prov_tier = "ai_watermark_detected"
@@ -29,6 +31,9 @@ def extract_exif_signals(image_source: Any) -> Dict[str, Any]:
     elif has_cam:
         prov_tier = "camera_verified"
         prov_score = 1.0
+    elif is_screen:
+        prov_tier = "screenshot_recapture"
+        prov_score = 0.5
     elif not exif_data.get("has_exif", False):
         prov_tier = "stripped"
         prov_score = 0.0
@@ -51,6 +56,8 @@ def extract_exif_signals(image_source: Any) -> Dict[str, Any]:
         "detected_ai_software": audit_data.get("detected_ai_software", []),
         "anomalies": audit_data.get("anomalies", []),
         "has_authentic_camera_tags": has_cam,
+        "is_screenshot": is_screen,
+        "screenshot_reason": screen_reason,
         "provenance_tier": prov_tier,
         "provenance_score": prov_score,
         "raw_tags": exif_data.get("raw_tags", {}),

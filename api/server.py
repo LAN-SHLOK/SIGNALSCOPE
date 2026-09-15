@@ -138,6 +138,8 @@ def _format_analysis_to_frontend(resp: AnalysisResponse, raw_bytes: bytes, image
         val_status, trust_sig = "valid", "Strong Provenance"
     elif resp.metadata.has_exif and (resp.metadata.camera_make or resp.metadata.camera_model):
         val_status, trust_sig = "valid", "Strong Provenance"
+    elif getattr(resp.metadata, "is_screenshot", False):
+        val_status, trust_sig = "none", "Screen Capture (No Sensor)"
     else:
         val_status, trust_sig = "none", "No Provenance"
 
@@ -206,12 +208,14 @@ def _format_analysis_to_frontend(resp: AnalysisResponse, raw_bytes: bytes, image
         "fftSpectrumUrl": layers["fftSpectrumUrl"],
         "exif": {
             "hasExif": resp.metadata.has_exif,
-            "cameraModel": resp.metadata.camera_model,
-            "lens": resp.metadata.focal_length,
+            "cameraModel": "Digital Screen Capture" if getattr(resp.metadata, "is_screenshot", False) and not resp.metadata.camera_model else resp.metadata.camera_model,
+            "lens": "N/A (Framebuffer)" if getattr(resp.metadata, "is_screenshot", False) and not resp.metadata.focal_length else resp.metadata.focal_length,
             "exposure": resp.metadata.exposure_time,
             "software": resp.metadata.software,
             "iso": resp.metadata.iso,
             "anomalyFlag": resp.metadata.anomalies[0] if resp.metadata.anomalies else None,
+            "isScreenshot": getattr(resp.metadata, "is_screenshot", False),
+            "screenshotReason": getattr(resp.metadata, "screenshot_reason", None),
         },
         "c2pa": {
             "hasC2pa": resp.metadata.c2pa_present,

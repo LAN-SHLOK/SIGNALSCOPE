@@ -854,7 +854,9 @@ export const ScannerSection: React.FC = () => {
                           <div className="p-3 bg-[#f5f1e8] border border-black/20 space-y-2">
                             <div className="flex justify-between border-b border-black/10 pb-1.5">
                               <span className="text-neutral-500">Camera Model:</span>
-                              <span className="text-black font-bold">{analyzedImage.exif.cameraModel || 'None Found (AI)'}</span>
+                              <span className="text-black font-bold">
+                                {analyzedImage.exif.cameraModel || (analyzedImage.verdictTier === 'confident_ai' ? 'None Found (Synthetic)' : 'Stripped / Unavailable')}
+                              </span>
                             </div>
                             <div className="flex justify-between border-b border-black/10 pb-1.5">
                               <span className="text-neutral-500">Camera Lens:</span>
@@ -866,7 +868,9 @@ export const ScannerSection: React.FC = () => {
                             </div>
                           </div>
                           <p className="text-[10px] text-neutral-600 italic">
-                            Physical cameras record hardware lens and sensor metadata tags. AI models typically lack these hardware footprints.
+                            {analyzedImage.c2pa.trustSignal.includes("Screen Capture")
+                              ? "Digital screen capture detected. Image originates from a system display framebuffer; optical camera sensor footprints are absent."
+                              : "Physical cameras record hardware lens and sensor metadata tags. Messaging platforms frequently strip this metadata."}
                           </p>
                         </div>
                       )}

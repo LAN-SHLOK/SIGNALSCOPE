@@ -81,6 +81,8 @@ class MetadataReport:
     anomalies: List[str] = field(default_factory=list)
     trust_signal: str = "NEUTRAL"                # "STRONG_AUTHENTIC" | "PROBABLE_AI" | "SUSPICIOUS_STRIPPED" | "CONFIRMED_SYNTHETIC" | "NEUTRAL"
     raw_tags: Dict[str, Any] = field(default_factory=dict)
+    is_screenshot: bool = False
+    screenshot_reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -102,6 +104,8 @@ class MetadataReport:
             "c2pa_claim_generator": self.c2pa_claim_generator,
             "anomalies": self.anomalies,
             "trust_signal": self.trust_signal,
+            "is_screenshot": self.is_screenshot,
+            "screenshot_reason": self.screenshot_reason,
         }
 
 
