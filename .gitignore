@@ -44,6 +44,10 @@ weights/*
 !weights/.gitkeep
 !weights/README.md
 
+# Whitelist essential core model weights required for inference
+!model/weights/
+!model/weights/*
+
 # ------------------------------------------------------------------------------
 # 3. Feature Caches, Embeddings & Large Arrays
 # ------------------------------------------------------------------------------

@@ -36,6 +36,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ src/
 COPY app/ app/
 COPY api/ api/
+COPY model/ model/
 COPY configs/ configs/
 COPY data/ data/
 COPY weights/ weights/
