@@ -7,10 +7,10 @@ install-dev:
 	pip install -r requirements.txt -r requirements-dev.txt
 
 train:
-	python scripts/train.py
+	python model/train.py
 
 evaluate:
-	python scripts/evaluate.py
+	python model/evaluate.py
 
 predict:
 	python predict.py --image $(IMAGE)
@@ -37,7 +37,7 @@ docker-down:
 	docker compose down
 
 download-weights:
-	python scripts/download_weights.py
+	python -c "import torch; torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14')"
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
