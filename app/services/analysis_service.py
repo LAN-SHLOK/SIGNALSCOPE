@@ -7,12 +7,15 @@ so it seamlessly switches between real PyTorch models and scientific fallback ca
 import time
 import io
 import os
+import logging
 from pathlib import Path
 from typing import List, Tuple, Optional, Any, Dict
 import numpy as np
 from PIL import Image
 import cv2
 from scipy.fft import fft2, fftshift
+
+logger = logging.getLogger("signalscope.analysis")
 
 from app.schemas.contracts import (
     VerdictTier,
@@ -203,18 +206,24 @@ class AnalysisService:
                         if "srm_map" in ml_res:
                             srm_norm = ml_res["srm_map"]
                         ml_explanation = ml_res.get("explanation")
+                    elif ml_res and "error" in ml_res:
+                        logger.warning(f"ML model returned error: {ml_res['error']}")
+                except Exception as ml_err:
+                    logger.exception(f"ML model prediction failed: {ml_err}")
+                    ml_computed = False
                 finally:
                     if os.path.exists(tmp_path):
                         os.remove(tmp_path)
-            except Exception:
+            except Exception as outer_err:
+                logger.exception(f"Failed to prepare image for ML inference: {outer_err}")
                 ml_computed = False
 
         if not ml_computed:
-            # Evaluate forensic indicators for baseline confidence
+            # Fallback heuristic only when ML weights are unavailable or failed
             if meta_report.is_ai_software_detected or meta_report.c2pa_status == "VALID_AI_CREDENTIAL":
                 raw_confidence = 0.96
                 generator_family = "Diffusion-family"
-            elif meta_report.trust_signal == "STRONG_AUTHENTIC" or meta_report.trust_signal == "LIKELY_AUTHENTIC_HARDWARE":
+            elif meta_report.trust_signal in ("STRONG_AUTHENTIC", "LIKELY_AUTHENTIC_HARDWARE"):
                 raw_confidence = 0.08
                 generator_family = "Camera / Real"
             else:
@@ -223,13 +232,18 @@ class AnalysisService:
                 low_freq_energy = float(np.mean(azimuthal_curve[:16])) if len(azimuthal_curve) >= 16 else 1.0
                 freq_ratio = high_freq_energy / (low_freq_energy + 1e-6)
 
-                # AI images often have unusually sharp high-freq residual cutoff or spikes
-                if freq_ratio > 0.45 or not has_bayer:
-                    raw_confidence = 0.78
-                    generator_family = "Diffusion-family" if freq_ratio > 0.50 else "GAN-family"
-                else:
-                    raw_confidence = 0.22
+                # Real web / social media images often strip Bayer patterns, so lack of Bayer is NOT evidence of AI.
+                # Only flag AI if high-frequency energy ratio is abnormally elevated.
+                if freq_ratio > 0.65:
+                    raw_confidence = 0.72
+                    generator_family = "Diffusion-family"
+                elif has_bayer or freq_ratio < 0.30:
+                    raw_confidence = 0.18
                     generator_family = "Camera / Real"
+                else:
+                    # Ambiguous case in fallback mode without ML model: set to 0.50 (Uncertain)
+                    raw_confidence = 0.50
+                    generator_family = "Unknown"
 
             # Apply TTA smoothing simulation if enabled
             if use_tta:
