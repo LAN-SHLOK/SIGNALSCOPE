@@ -26,6 +26,12 @@ def jpeg_ghost_features(image_bgr: np.ndarray, quality_range=None) -> np.ndarray
     if image_bgr.shape[0] < 16 or image_bgr.shape[1] < 16:
         return features
         
+    # Scale down oversized images (e.g. 12MP+ camera photos) to avoid massive memory allocations
+    H, W = image_bgr.shape[:2]
+    if max(H, W) > 1024:
+        scale = 1024.0 / max(H, W)
+        image_bgr = cv2.resize(image_bgr, (int(W * scale), int(H * scale)), interpolation=cv2.INTER_AREA)
+        
     image_float = image_bgr.astype(np.float32)
     
     for i, q in enumerate(quality_range):

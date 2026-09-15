@@ -168,8 +168,12 @@ class AnalysisService:
             bayer_confidence=bayer_conf,
         )
 
-        # 3. Heatmap extraction
+        # 3. Heatmap extraction (baseline fallback)
         heatmap_norm = _generate_saliency_heatmap(np_gray)
+        attn_norm = None
+        srm_norm = None
+        summary_explanation = None
+        ml_explanation = None
 
         # 4. Model Inference: Full Deep Learning Foundation Stream or Fallback
         raw_confidence = 0.50
@@ -191,6 +195,13 @@ class AnalysisService:
                         raw_confidence = float(ml_res["confidence"])
                         generator_family = ml_res.get("generator_family", "Unknown")
                         ml_computed = True
+                        if "fused_heatmap" in ml_res and ml_res["fused_heatmap"] is not None:
+                            heatmap_norm = ml_res["fused_heatmap"]
+                        if "attn_map" in ml_res:
+                            attn_norm = ml_res["attn_map"]
+                        if "srm_map" in ml_res:
+                            srm_norm = ml_res["srm_map"]
+                        ml_explanation = ml_res.get("explanation")
                 finally:
                     if os.path.exists(tmp_path):
                         os.remove(tmp_path)
@@ -260,54 +271,91 @@ class AnalysisService:
 
         # 7. Grounded Forensic Cues (Module A)
         cues: List[ForensicCue] = []
-        if calibrated_conf >= 0.50:
-            cues.append(
-                ForensicCue(
-                    cue_type="Spectral Grid Artifact",
-                    description="Elevated radial frequency variance observed in high-pass spectrum bands, typical of neural upsampling.",
-                    severity="high",
-                    confidence=round(calibrated_conf * 0.95, 2),
-                    location="Global frequency spectrum",
-                )
-            )
-            cues.append(
-                ForensicCue(
-                    cue_type="Bayer Pattern Anomaly",
-                    description="Absence of periodic 2-pixel Bayer demosaicing autocorrelation traces found in physical optical sensors.",
-                    severity="medium",
-                    confidence=round(1.0 - bayer_conf, 2),
-                    location="Sensor residual map",
-                )
-            )
-            if meta_report.anomalies:
+        if ml_explanation and ml_explanation.get("cues"):
+            summary_explanation = ml_explanation.get("summary")
+            loc_note = ml_explanation.get("localization_note", "Identified anomaly region")
+            for cue_str in ml_explanation.get("cues", []):
+                cue_lower = cue_str.lower()
+                if "texture" in cue_lower or "boundary" in cue_lower or "smoothing" in cue_lower:
+                    c_type = "Spatial / Texture Boundary"
+                    c_sev = "high" if calibrated_conf >= 0.5 else "info"
+                    c_loc = loc_note
+                elif "spectral" in cue_lower or "harmonics" in cue_lower or "1/f" in cue_lower or "frequency" in cue_lower:
+                    c_type = "Spectral Grid Artifact" if calibrated_conf >= 0.5 else "Natural 1/f Spectral Decay"
+                    c_sev = "high" if calibrated_conf >= 0.5 else "info"
+                    c_loc = "Global frequency spectrum"
+                elif "bayer" in cue_lower or "sensor" in cue_lower or "demosaicing" in cue_lower:
+                    c_type = "Bayer CFA Anomaly" if calibrated_conf >= 0.5 else "Optical Sensor Signature"
+                    c_sev = "medium" if calibrated_conf >= 0.5 else "info"
+                    c_loc = "Physical sensor plane"
+                elif "metadata" in cue_lower or "exif" in cue_lower or "c2pa" in cue_lower or "hardware" in cue_lower:
+                    c_type = "Metadata & Provenance"
+                    c_sev = "high" if meta_report.is_ai_software_detected else ("info" if meta_report.has_exif else "medium")
+                    c_loc = "File header & chunks"
+                else:
+                    c_type = "Visual Artifact Cue"
+                    c_sev = "high" if calibrated_conf >= 0.5 else "info"
+                    c_loc = "Canvas"
+
+                cue_conf = round(calibrated_conf if calibrated_conf >= 0.5 else (1.0 - calibrated_conf), 2)
                 cues.append(
                     ForensicCue(
-                        cue_type="Metadata Inconsistency",
-                        description=f"{meta_report.anomalies[0]}",
-                        severity="high" if meta_report.is_ai_software_detected else "low",
-                        confidence=0.99 if meta_report.is_ai_software_detected else 0.60,
-                        location="File header & chunks",
+                        cue_type=c_type,
+                        description=cue_str,
+                        severity=c_sev,
+                        confidence=cue_conf,
+                        location=c_loc,
                     )
                 )
         else:
-            cues.append(
-                ForensicCue(
-                    cue_type="Optical Sensor Signature",
-                    description="Periodic CFA sensor autocorrelation detected consistent with physical CMOS/CCD hardware.",
-                    severity="info",
-                    confidence=round(bayer_conf if has_bayer else 0.85, 2),
-                    location="Sensor plane",
+            if calibrated_conf >= 0.50:
+                cues.append(
+                    ForensicCue(
+                        cue_type="Spectral Grid Artifact",
+                        description="Elevated radial frequency variance observed in high-pass spectrum bands, typical of neural upsampling.",
+                        severity="high",
+                        confidence=round(calibrated_conf * 0.95, 2),
+                        location="Global frequency spectrum",
+                    )
                 )
-            )
-            cues.append(
-                ForensicCue(
-                    cue_type="Natural 1/f Spectral Decay",
-                    description="Power spectral distribution exhibits natural physical decay across radial spatial frequencies.",
-                    severity="info",
-                    confidence=0.91,
-                    location="Global frequency spectrum",
+                cues.append(
+                    ForensicCue(
+                        cue_type="Bayer Pattern Anomaly",
+                        description="Absence of periodic 2-pixel Bayer demosaicing autocorrelation traces found in physical optical sensors.",
+                        severity="medium",
+                        confidence=round(1.0 - bayer_conf, 2),
+                        location="Sensor residual map",
+                    )
                 )
-            )
+                if meta_report.anomalies:
+                    cues.append(
+                        ForensicCue(
+                            cue_type="Metadata Inconsistency",
+                            description=f"{meta_report.anomalies[0]}",
+                            severity="high" if meta_report.is_ai_software_detected else "low",
+                            confidence=0.99 if meta_report.is_ai_software_detected else 0.60,
+                            location="File header & chunks",
+                        )
+                    )
+            else:
+                cues.append(
+                    ForensicCue(
+                        cue_type="Optical Sensor Signature",
+                        description="Periodic CFA sensor autocorrelation detected consistent with physical CMOS/CCD hardware.",
+                        severity="info",
+                        confidence=round(bayer_conf if has_bayer else 0.85, 2),
+                        location="Sensor plane",
+                    )
+                )
+                cues.append(
+                    ForensicCue(
+                        cue_type="Natural 1/f Spectral Decay",
+                        description="Power spectral distribution exhibits natural physical decay across radial spatial frequencies.",
+                        severity="info",
+                        confidence=0.91,
+                        location="Global frequency spectrum",
+                    )
+                )
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0
 
@@ -320,6 +368,9 @@ class AnalysisService:
             metadata=meta_report,
             spectral=spectral_data,
             heatmap_array=heatmap_norm,
+            attn_array=attn_norm,
+            srm_array=srm_norm,
+            summary_explanation=summary_explanation,
             processing_time_ms=elapsed_ms,
         )
 

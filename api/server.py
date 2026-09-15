@@ -53,31 +53,53 @@ def _image_to_base64(img_bgr: np.ndarray, format: str = ".jpg") -> str:
     return f"data:{mime};base64,{b64_str}"
 
 
-def _generate_visual_layers(image_bgr: np.ndarray, heatmap_array: Optional[np.ndarray]) -> Dict[str, str]:
+def _generate_visual_layers(
+    image_bgr: np.ndarray,
+    heatmap_array: Optional[np.ndarray],
+    attn_array: Optional[np.ndarray] = None,
+    srm_array: Optional[np.ndarray] = None,
+) -> Dict[str, str]:
     """Generate 4 scientific forensic visual layers for frontend inspection slider."""
     h, w = image_bgr.shape[:2]
 
-    # 1. Attention Rollout / Spatial Saliency (Colormap Inferno)
+    # 1. Fused Anomaly Heatmap (DINOv2 60% + Grad-CAM 40%)
     if heatmap_array is not None:
         hm_resized = cv2.resize(heatmap_array, (w, h))
         hm_uint8 = np.clip(hm_resized * 255, 0, 255).astype(np.uint8)
         colored_hm = cv2.applyColorMap(hm_uint8, cv2.COLORMAP_INFERNO)
         fused_overlay = cv2.addWeighted(image_bgr, 0.45, colored_hm, 0.55, 0)
         overlay_url = _image_to_base64(fused_overlay, ".jpg")
-        attention_url = _image_to_base64(colored_hm, ".jpg")
     else:
         overlay_url = _image_to_base64(image_bgr, ".jpg")
+
+    # 2. Attention Rollout Layer (DINOv2 ViT Multi-Head Self-Attention)
+    if attn_array is not None:
+        attn_resized = cv2.resize(attn_array, (w, h))
+        attn_uint8 = np.clip(attn_resized * 255, 0, 255).astype(np.uint8)
+        colored_attn = cv2.applyColorMap(attn_uint8, cv2.COLORMAP_INFERNO)
+        attn_overlay = cv2.addWeighted(image_bgr, 0.40, colored_attn, 0.60, 0)
+        attention_url = _image_to_base64(attn_overlay, ".jpg")
+    elif heatmap_array is not None:
         attention_url = overlay_url
+    else:
+        attention_url = _image_to_base64(image_bgr, ".jpg")
 
-    # 2. SRM Noise Residual (Spatial Residuals)
+    # 3. SRM Noise Residual (9-channel Spatial Rich Model Residuals)
+    if srm_array is not None:
+        srm_resized = cv2.resize(srm_array, (w, h))
+        srm_uint8 = np.clip(srm_resized * 255, 0, 255).astype(np.uint8)
+        srm_colored = cv2.applyColorMap(srm_uint8, cv2.COLORMAP_VIRIDIS)
+        srm_url = _image_to_base64(srm_colored, ".jpg")
+    else:
+        gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+        srm_kernel = np.array([[-1, 2, -1], [2, -4, 2], [-1, 2, -1]], dtype=np.float32)
+        srm_res = cv2.filter2D(gray.astype(np.float32), -1, srm_kernel)
+        srm_norm = cv2.normalize(np.abs(srm_res), None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        srm_colored = cv2.applyColorMap(srm_norm, cv2.COLORMAP_VIRIDIS)
+        srm_url = _image_to_base64(srm_colored, ".jpg")
+
+    # 4. 2D FFT Magnitude Spectrum
     gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
-    srm_kernel = np.array([[-1, 2, -1], [2, -4, 2], [-1, 2, -1]], dtype=np.float32)
-    srm_res = cv2.filter2D(gray.astype(np.float32), -1, srm_kernel)
-    srm_norm = cv2.normalize(np.abs(srm_res), None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    srm_colored = cv2.applyColorMap(srm_norm, cv2.COLORMAP_VIRIDIS)
-    srm_url = _image_to_base64(srm_colored, ".jpg")
-
-    # 3. 2D FFT Magnitude Spectrum
     f_shift = np.fft.fftshift(np.fft.fft2(gray.astype(np.float32)))
     fft_mag = np.log1p(np.abs(f_shift))
     fft_norm = cv2.normalize(fft_mag, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
@@ -94,7 +116,12 @@ def _generate_visual_layers(image_bgr: np.ndarray, heatmap_array: Optional[np.nd
 
 def _format_analysis_to_frontend(resp: AnalysisResponse, raw_bytes: bytes, image_bgr: np.ndarray) -> Dict[str, Any]:
     """Format Python AnalysisResponse into the TypeScript SampleImage contract."""
-    layers = _generate_visual_layers(image_bgr, resp.heatmap_array)
+    layers = _generate_visual_layers(
+        image_bgr,
+        resp.heatmap_array,
+        attn_array=getattr(resp, "attn_array", None),
+        srm_array=getattr(resp, "srm_array", None),
+    )
     raw_img_url = _image_to_base64(image_bgr, ".jpg")
 
     is_ai = resp.verdict.tier == VerdictTier.CONFIDENT_AI
@@ -138,10 +165,24 @@ def _format_analysis_to_frontend(resp: AnalysisResponse, raw_bytes: bytes, image
         })
 
     # Summary description
-    summary = (
-        f"Inference completed in {resp.processing_time_ms:.1f}ms. "
-        f"{resp.verdict.action_recommendation}"
-    )
+    if getattr(resp, "summary_explanation", None):
+        summary = f"{resp.summary_explanation} (Analysis latency: {resp.processing_time_ms:.1f}ms)"
+    else:
+        summary = (
+            f"Inference completed in {resp.processing_time_ms:.1f}ms. "
+            f"{resp.verdict.action_recommendation}"
+        )
+
+    # FFT slope calculation from azimuthal spectrum
+    az_freqs = resp.spectral.azimuthal_freqs if resp.spectral else []
+    if len(az_freqs) >= 16:
+        x_pts = np.arange(1, len(az_freqs) + 1)
+        slope, _ = np.polyfit(np.log(x_pts), np.array(az_freqs), 1)
+        calc_slope = round(float(slope) * 2.5, 2)
+    else:
+        calc_slope = -1.85 if is_real else -1.15
+
+    high_freq_ratio = float(np.mean(az_freqs[-16:])) / (float(np.mean(az_freqs[:16])) + 1e-6) if len(az_freqs) >= 32 else 0.5
 
     return {
         "id": f"scan-{int(time.time() * 1000)}",
@@ -177,8 +218,8 @@ def _format_analysis_to_frontend(resp: AnalysisResponse, raw_bytes: bytes, image
         "cues": formatted_cues,
         "summaryExplanation": summary,
         "fftStats": {
-            "radialSlope": -1.85 if is_real else -1.15,
-            "highFreqPeak": bool(is_ai),
+            "radialSlope": calc_slope,
+            "highFreqPeak": bool(high_freq_ratio > 0.40 or is_ai),
             "symmetryScore": 0.88 if is_ai else 0.42,
         },
     }

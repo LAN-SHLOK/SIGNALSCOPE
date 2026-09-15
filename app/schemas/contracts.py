@@ -134,7 +134,10 @@ class AnalysisResponse:
     cues: List[ForensicCue]
     metadata: MetadataReport
     spectral: SpectralData
-    heatmap_array: Optional[Any] = None          # 2D normalized numpy array (H, W) or None
+    heatmap_array: Optional[Any] = None          # 2D normalized fused heatmap (H, W) or None
+    attn_array: Optional[Any] = None             # 2D normalized DINOv2 attention rollout (H, W) or None
+    srm_array: Optional[Any] = None              # 2D normalized SRM noise residual (H, W) or None
+    summary_explanation: Optional[str] = None    # Grounded natural language summary from cue descriptors
     processing_time_ms: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
@@ -146,6 +149,7 @@ class AnalysisResponse:
             "cues": [c.to_dict() for c in self.cues],
             "metadata": self.metadata.to_dict(),
             "spectral": self.spectral.to_dict(),
+            "summary_explanation": self.summary_explanation,
             "processing_time_ms": round(self.processing_time_ms, 2),
         }
 

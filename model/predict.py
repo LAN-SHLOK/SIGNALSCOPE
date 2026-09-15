@@ -256,6 +256,18 @@ def predict(image_path: str, explain: bool = False, use_tta: bool = False, devic
                 heatmap_path = save_heatmap_overlay(image_np, fused_heatmap, image_path)
                 result["explanation"] = explanation
                 result["heatmap_path"] = str(heatmap_path)
+                result["fused_heatmap"] = fused_heatmap.astype(np.float32)
+                result["attn_map"] = attn_map.astype(np.float32)
+                result["gcam_map"] = gcam_map.astype(np.float32)
+
+                if 'srm_residuals' in features and features['srm_residuals'] is not None:
+                    srm_t = features['srm_residuals']
+                    if hasattr(srm_t, "squeeze"):
+                        srm_np = torch.mean(torch.abs(srm_t[0]), dim=0).detach().cpu().numpy()
+                        s_min, s_max = float(srm_np.min()), float(srm_np.max())
+                        if s_max > s_min:
+                            srm_np = (srm_np - s_min) / (s_max - s_min)
+                        result["srm_map"] = srm_np.astype(np.float32)
             except Exception as e:
                 result["explanation_note"] = f"Explanation modules not yet available: {str(e)}"
 
