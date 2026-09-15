@@ -29,7 +29,7 @@ def responsible_verdict(confidence: float, threshold: float = 0.5) -> Dict[str, 
             'verdict': 'Likely AI-generated',
             'tier': 'confident_ai',
             'color': '#FF4444',
-            'icon': '🔴',
+            'icon': '[AI]',
             'action': 'Review the forensic cues below for details.',
             'confidence': round(confidence, 4),
         }
@@ -38,7 +38,7 @@ def responsible_verdict(confidence: float, threshold: float = 0.5) -> Dict[str, 
             'verdict': 'Likely authentic',
             'tier': 'confident_real',
             'color': '#44BB44',
-            'icon': '🟢',
+            'icon': '[REAL]',
             'action': 'No significant AI artifacts detected.',
             'confidence': round(confidence, 4),
         }
@@ -47,7 +47,7 @@ def responsible_verdict(confidence: float, threshold: float = 0.5) -> Dict[str, 
             'verdict': 'Uncertain — human review recommended',
             'tier': 'uncertain',
             'color': '#FFAA00',
-            'icon': '🟡',
+            'icon': '[UNCERTAIN]',
             'action': (
                 'The model cannot confidently classify this image. '
                 'Consider source context, metadata, and expert review.'

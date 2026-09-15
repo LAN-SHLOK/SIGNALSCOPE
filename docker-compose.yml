@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     build:
@@ -11,7 +9,11 @@ services:
       - ./model/weights:/app/model/weights:ro
       - ./configs:/app/configs:ro
       - ./data:/app/data:ro
+      - torch-cache:/root/.cache/torch
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+
+volumes:
+  torch-cache:
 

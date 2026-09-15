@@ -1,0 +1,27 @@
+# Git and CI
+.git
+.github
+
+# Dependencies and caches
+node_modules
+frontend/node_modules
+frontend/dist
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+
+# Output and logs
+output/
+outputs/
+logs/
+*.log
+wandb/
+mlruns/
+
+# Large local media/tests not needed for runtime image
+unseen_test/
+video.mp4

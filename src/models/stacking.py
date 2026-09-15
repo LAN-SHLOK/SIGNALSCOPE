@@ -61,6 +61,13 @@ class StackingEnsemble:
         }, path)
         
     def load(self, path: str):
+        # Compatibility shim for cross-platform / cross-version unpickling of HistGradientBoostingClassifier
+        try:
+            import sys
+            import sklearn._loss._loss
+            sys.modules['_loss'] = sklearn._loss._loss
+        except (ImportError, AttributeError):
+            pass
         models = joblib.load(path)
         self.lgbm = models['lgbm']
         self.meta_model = models['meta_model']

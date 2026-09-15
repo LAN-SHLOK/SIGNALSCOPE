@@ -108,10 +108,23 @@ def load_models(device_str: str) -> Dict[str, Any]:
         if os.path.exists(calibrator_path):
             calibrator.load_state_dict(torch.load(calibrator_path, map_location=device))
             
-        stacker = StackingEnsemble()
+        stacker = None
         stacker_path = os.path.join(WEIGHTS_DIR, "stacker.joblib")
         if os.path.exists(stacker_path):
-            stacker.load(stacker_path)
+            try:
+                # Compatibility shim for cross-platform / cross-version unpickling
+                import sys
+                try:
+                    import sklearn._loss._loss
+                    sys.modules['_loss'] = sklearn._loss._loss
+                except (ImportError, AttributeError):
+                    pass
+                s = StackingEnsemble()
+                s.load(stacker_path)
+                stacker = s
+            except Exception as se:
+                print(f"Warning: Could not load stacker ({se}). Falling back to calibrated neural detector.")
+                stacker = None
             
         _model_cache = {
             "feature_pipeline": feature_pipeline,
@@ -183,19 +196,22 @@ def predict(image_path: str, explain: bool = False, use_tta: bool = False, devic
 
         # Stacking ensemble blend with exact 7575-dim features
         try:
-            stacked_prob = stacker.predict(flat_feat_np, calibrated_prob)
+            if stacker is not None:
+                stacked_prob = stacker.predict(flat_feat_np, calibrated_prob)
 
-            # Forensic Conflict Arbiter:
-            # If the 304M DINOv2 foundation model indicates authentic real content (calibrated_prob < 0.45),
-            # but the auxiliary feature stacker spikes (stacked_prob >= 0.70) due to social media downsampling,
-            # erased Bayer CFA sensor noise, or JPEG DCT compression blocks:
-            if calibrated_prob < 0.45 and stacked_prob >= 0.70:
-                # Prioritize foundation semantic representation and prevent compression-induced false positives
-                final_confidence = float(0.70 * calibrated_prob + 0.30 * stacked_prob)
-                if final_confidence > 0.50:
-                    final_confidence = 0.50  # Responsible Uncertain tier
+                # Forensic Conflict Arbiter:
+                # If the 304M DINOv2 foundation model indicates authentic real content (calibrated_prob < 0.45),
+                # but the auxiliary feature stacker spikes (stacked_prob >= 0.70) due to social media downsampling,
+                # erased Bayer CFA sensor noise, or JPEG DCT compression blocks:
+                if calibrated_prob < 0.45 and stacked_prob >= 0.70:
+                    # Prioritize foundation semantic representation and prevent compression-induced false positives
+                    final_confidence = float(0.70 * calibrated_prob + 0.30 * stacked_prob)
+                    if final_confidence > 0.50:
+                        final_confidence = 0.50  # Responsible Uncertain tier
+                else:
+                    final_confidence = float(stacked_prob)
             else:
-                final_confidence = float(stacked_prob)
+                final_confidence = calibrated_prob
         except Exception as e:
             final_confidence = calibrated_prob
 
@@ -347,11 +363,11 @@ if __name__ == "__main__":
     else:
         # Interactive runtime loop
         print("\n" + "=" * 65)
-        print("  🔬 SIGNALSCOPE INTERACTIVE FORENSIC INSPECTOR")
+        print("  SIGNALSCOPE INTERACTIVE FORENSIC INSPECTOR")
         print("  Loading models into memory (one-time setup)...")
         print("=" * 65)
         load_models(chosen_device)
-        print("  ✓ Models loaded into memory and ready for instantaneous testing!")
+        print("  [OK] Models loaded into memory and ready for testing.")
         print("  Tip: You can drag & drop any image file directly into this terminal.\n")
 
         while True:
@@ -364,17 +380,17 @@ if __name__ == "__main__":
                 # Strip wrapping quotes if user dragged and dropped in terminal
                 img_path = user_input.strip('"').strip("'").strip('&').strip()
                 if not os.path.exists(img_path):
-                    print(f"❌ File not found at: {img_path}")
+                    print(f"File not found at: {img_path}")
                     continue
                 
-                print(f"\n🔍 Analyzing: {os.path.basename(img_path)} ...")
+                print(f"\nAnalyzing: {os.path.basename(img_path)} ...")
                 t0 = time.time()
                 # In interactive mode, explain=True by default unless disabled
                 res = predict(img_path, explain=True, use_tta=not args.no_tta, device_override=chosen_device)
                 elapsed = time.time() - t0
                 
                 if "error" in res:
-                    print(f"❌ Analysis failed: {res['error']}")
+                    print(f"Analysis failed: {res['error']}")
                     continue
                 
                 label = res.get("label", "Unknown")
