@@ -190,16 +190,17 @@ SIGNALSCOPE/
 │   ├── roc_curve.png             # Receiver Operating Characteristic plot
 │   └── robustness_curve.png      # JPEG degradation-vs-accuracy curve
 ├── scripts/
-│   ├── batch_predict.py          # Batch evaluation scanner
-│   └── download_weights.py       # Weights release downloader
+│   └── batch_predict.py          # Batch evaluation scanner
 ├── src/
 │   ├── config.py                 # Central hyperparameter & path constants
+│   ├── data/                     # Dataset loaders, augmentations & caching
 │   ├── explain/                  # Attention rollout, noise Grad-CAM & cue descriptors
 │   ├── features/                 # DINOv2, SRM, Orthonormal FFT, Bayer & JPEG features
 │   ├── inference/                # Temperature calibration, abstention & TTA
 │   ├── metadata/                 # Deep EXIF parser & C2PA JUMBF binary scanner
-│   └── models/                   # SignalScopeDetector, MLP fusion & stacking
-├── tests/                        # 12 automated unit tests & regression suite
+│   ├── models/                   # SignalScopeDetector, MLP fusion & stacking
+│   └── utils/                    # Forensic metrics & scoring helpers
+├── tests/                        # Automated unit tests & regression suite
 ├── unseen_test/                  # Independent validation samples (real phone, modern AI)
 ├── Dockerfile                    # Multi-stage production container
 ├── docker-compose.yml            # Docker orchestration
@@ -233,11 +234,31 @@ python tests/verify_joint_model.py
 
 ---
 
-## License
+## Dataset Credits & Citations
 
-Distributed under the MIT License. See `LICENSE` for details.
+SignalScope models and evaluation benchmarks were trained and validated using the following public datasets:
 
-## 🎥 Demo Video
+1. **CIFAKE Dataset**
+   - **Source**: [CIFAKE: Real and AI-Generated Synthetic Images](https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images/) (Kaggle)
+   - **Description**: 120,000 $32 \times 32$ images containing authentic photography from CIFAR-10 and synthetic diffusion imagery generated via Stable Diffusion 1.4. Used for in-distribution foundation training and baseline benchmarking.
+   - **Citation**: J. J. Bird, A. Lotfi, "CIFAKE: Image Classification and Explainable Identification of AI-Generated Synthetic Images", 2023.
+
+2. **Defactify Image Dataset**
+   - **Source**: [Defactify Image Dataset](https://huggingface.co/datasets/Rajarshi-Roy-research/Defactify_Image_Dataset) (Hugging Face)
+   - **Description**: Multi-domain dataset featuring authentic photography from MS-COCO alongside modern synthetic generation models including Stable Diffusion 3, SDXL, DALL-E 3, and Midjourney v6. Used for domain generalization, modern generator coverage, and out-of-distribution calibration.
+   - **Citation**: Rajarshi Roy et al., Defactify Image Dataset research initiative.
+
+---
+
+## License & Attribution
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Permission is granted to freely use, modify, distribute, and integrate this software for academic, commercial, or personal purposes, provided that the original copyright notice is preserved in all copies and attribution is credited to: **SignalScope Core Contributors (LAN-SHLOK, Bhavya Doriya, Shlok Patel, Vaibhav Waghela, Jyoti Brahma)**.
+
+---
+
+## Demo Video
 
 [Watch the SignalScope Demo Video (Google Drive)](https://drive.google.com/file/d/1DnwGJWE2Jln-qofowCdh_x49AuLLuxmi/view?usp=sharing)
 

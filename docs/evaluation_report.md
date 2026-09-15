@@ -10,13 +10,13 @@ Evaluation was conducted under a strict, non-leaking data partition protocol des
 
 ### Dataset Sources
 
-1. **Benchmark Baseline (CIFAKE)**:
+1. **Benchmark Baseline ([CIFAKE](https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images/))**:
    - Authentic class: CIFAR-10 real photographs.
    - Synthetic class: Stable Diffusion 1.4 generated imagery.
    - Purpose: In-distribution baseline verification (~100k scale).
 
-2. **Added Public Dataset (Defactify Image Dataset)**:
-   - Source: `Rajarshi-Roy-research/Defactify_Image_Dataset` (MIT / Open License).
+2. **Added Public Dataset ([Defactify Image Dataset](https://huggingface.co/datasets/Rajarshi-Roy-research/Defactify_Image_Dataset))**:
+   - Source: `Rajarshi-Roy-research/Defactify_Image_Dataset` on Hugging Face (MIT / Open License).
    - Authentic class: Natural photographs from the MS-COCO repository.
    - Synthetic class: Imagery produced across five generative engines:
      - Stable Diffusion 3 (Flow Matching / Diffusion Transformers)

@@ -1,6 +1,6 @@
-﻿MIT License
+MIT License
 
-Copyright (c) 2025
+Copyright (c) 2026 SignalScope Core Contributors (LAN-SHLOK, Bhavya Doriya, Shlok Patel, Vaibhav Waghela, Jyoti Brahma)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+==============================================================================
+Attribution & Usage Guidelines:
+You are permitted to freely use, adapt, extend, and redistribute this software
+and its model architectures for research, commercial, or personal applications.
+Any publication, product, or fork derived from this work must retain the original
+copyright notice and credit the authors: SignalScope (LAN-SHLOK, Bhavya Doriya,
+Shlok Patel, Vaibhav Waghela, Jyoti Brahma).
+==============================================================================
