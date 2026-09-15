@@ -153,8 +153,13 @@ class FeaturePipeline:
         - 20 (JPEG ghost)
         - 2 (Bayer autocorrelation)
         """
-        res = self.extract(image_rgb_np, image_tensor_518)
-        
+        return self.flatten_dict(res)
+
+    def flatten_dict(self, res: Dict[str, Any]) -> np.ndarray:
+        """
+        Converts an already extracted feature dict into the flat 7575-dim vector.
+        Avoids redundant forward passes when extract() was already called.
+        """
         def to_flat_np(x):
             if isinstance(x, torch.Tensor):
                 return x.detach().cpu().numpy().flatten()

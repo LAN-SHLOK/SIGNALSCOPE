@@ -159,17 +159,13 @@ def predict(image_path: str, explain: bool = False, use_tta: bool = False, devic
         image_np = np.array(image_pil)  # (H, W, 3) uint8
         image_tensor_518 = preprocess_for_dino(image_pil)  # (3, 518, 518)
 
-        # Extract the exact 7575-dim flat features matching training
-        flat_feat_np = pipeline.extract_and_flatten(image_np, image_tensor_518)
+        # Single extraction pass: extract all features once and reuse across entire pipeline
+        features = pipeline.extract(image_np, image_tensor_518)
+        flat_feat_np = pipeline.flatten_dict(features) if hasattr(pipeline, "flatten_dict") else pipeline.extract_and_flatten(image_np, image_tensor_518)
         flat_feat_tensor = torch.from_numpy(flat_feat_np).unsqueeze(0).to(device)
 
         # Model inference — pass flat feature tensor
         output = model(flat_features=flat_feat_tensor)
-
-        # Also get decomposed features if needed for explainability
-        features = None
-        if explain:
-            features = pipeline.extract(image_np, image_tensor_518)
 
         # Get raw logit and calibrate
         raw_logit = output['binary_logit']
@@ -244,7 +240,9 @@ def predict(image_path: str, explain: bool = False, use_tta: bool = False, devic
                 from src.explain.heatmap_fusion import fuse_heatmaps
                 from src.explain.cue_descriptors import generate_explanation
 
-                attn_map = compute_attention_rollout(pipeline.dino, image_tensor_518)
+                attn_map = compute_attention_rollout(
+                    pipeline.dino, image_tensor_518, patch_tokens=features.get('patch_tokens')
+                )
                 gcam_map = compute_gradcam(model.spectral_cnn, features['srm_residuals'])
                 fused_heatmap = fuse_heatmaps(attn_map, gcam_map, weights=(0.6, 0.4))
 

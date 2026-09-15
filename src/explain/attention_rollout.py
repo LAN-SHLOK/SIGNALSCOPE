@@ -10,7 +10,12 @@ import cv2
 from typing import Optional
 
 
-def compute_attention_rollout(dino_model, image_tensor_518: torch.Tensor, head_fusion: str = "mean") -> np.ndarray:
+def compute_attention_rollout(
+    dino_model,
+    image_tensor_518: torch.Tensor,
+    head_fusion: str = "mean",
+    patch_tokens: Optional[torch.Tensor] = None,
+) -> np.ndarray:
     """
     Computes attention rollout across ViT self-attention layers.
 
@@ -18,35 +23,26 @@ def compute_attention_rollout(dino_model, image_tensor_518: torch.Tensor, head_f
         dino_model: DINOv2MultiLayerExtractor or underlying ViT backbone.
         image_tensor_518: (3, 518, 518) normalized tensor.
         head_fusion: How to fuse multi-head attention: 'mean', 'max', or 'min'.
+        patch_tokens: Optional precomputed patch tokens tensor to avoid re-evaluating DINO.
 
     Returns:
         (518, 518) float32 heatmap normalized to [0, 1].
     """
-    device = next(dino_model.parameters()).device if hasattr(dino_model, "parameters") else torch.device("cuda")
-    img_t = image_tensor_518.unsqueeze(0).to(device)
-
-    # In ViT 518x518 with patch size 14, there are 37x37 = 1369 patch tokens + 1 CLS token (+ register tokens if dinov2_reg)
     try:
-        raw_backbone = getattr(dino_model, "backbone", dino_model)
-        
-        # Capture attention maps from last block
-        attentions = []
-        def hook_fn(module, input, output):
-            # Many ViT blocks expose attention weights
-            pass
-
-        # Use patch tokens feature variance as spatial saliency
-        with torch.no_grad():
-            if hasattr(dino_model, "forward"):
-                out = dino_model(img_t)
-                if isinstance(out, tuple):
-                    _, patch_tokens = out
-                elif isinstance(out, dict):
-                    patch_tokens = out.get("patch_tokens")
+        if patch_tokens is None:
+            device = next(dino_model.parameters()).device if hasattr(dino_model, "parameters") else torch.device("cuda")
+            img_t = image_tensor_518.unsqueeze(0).to(device)
+            with torch.no_grad():
+                if hasattr(dino_model, "forward"):
+                    out = dino_model(img_t)
+                    if isinstance(out, tuple):
+                        _, patch_tokens = out
+                    elif isinstance(out, dict):
+                        patch_tokens = out.get("patch_tokens")
+                    else:
+                        patch_tokens = None
                 else:
                     patch_tokens = None
-            else:
-                patch_tokens = None
 
         if patch_tokens is not None:
             # Spatial anomaly map from patch token feature norm / variance
