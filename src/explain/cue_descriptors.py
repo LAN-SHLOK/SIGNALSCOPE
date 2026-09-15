@@ -1,7 +1,7 @@
 """
 Module A: Forensic Cue Descriptors for SignalScope.
 Generates human-readable, grounded explanations of visual and forensic cues
-behind model verdicts, adhering strictly to the SIH 2026 scoring rubric:
+behind model verdicts, adhering strictly to forensic explainability standards:
 - Correctness
 - Localisation
 - Usefulness

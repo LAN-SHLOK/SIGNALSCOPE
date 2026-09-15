@@ -132,6 +132,7 @@ class AnalysisService:
         image_bytes: bytes,
         filename: str = "uploaded_image.jpg",
         use_tta: bool = False,
+        explain: bool = True,
     ) -> AnalysisResponse:
         """
         Analyze a single image end-to-end.
@@ -190,7 +191,7 @@ class AnalysisService:
 
                 try:
                     from model.predict import predict as ml_predict
-                    ml_res = ml_predict(tmp_path, explain=True, use_tta=use_tta)
+                    ml_res = ml_predict(tmp_path, explain=explain, use_tta=use_tta)
                     if ml_res and "confidence" in ml_res and "error" not in ml_res:
                         raw_confidence = float(ml_res["confidence"])
                         generator_family = ml_res.get("generator_family", "Unknown")
@@ -398,7 +399,7 @@ class AnalysisService:
         """
         results: List[BatchItemResult] = []
         for fname, fbytes in files:
-            res = self.analyze_image(fbytes, filename=fname, use_tta=False)
+            res = self.analyze_image(fbytes, filename=fname, use_tta=False, explain=False)
             results.append(
                 BatchItemResult(
                     filename=res.filename,

@@ -64,11 +64,11 @@ graph TD
 
 ### Components Implemented & Configured
 1. **Core Backbone:** PyTorch 2.6.0 with native SDPA (Scaled Dot-Product Attention) accelerated by CUDA 12.4 on an RTX 3060 Laptop GPU.
-2. **DINOv2 Extractor ([dino_backbone.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/features/dino_backbone.py)):** ViT-L/14 with registered PyTorch forward hooks across intermediate transformer blocks 8, 16, 20, and 24.
-3. **Patch Statistics ([patch_statistics.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/features/patch_statistics.py)):** Mean, variance, spatial maxima, and 200 sampled patch-pair cosine similarity metrics.
-4. **Forensic Suite ([srm_filters.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/features/srm_filters.py), [frequency.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/features/frequency.py), [jpeg_ghost.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/features/jpeg_ghost.py), [bayer_detection.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/features/bayer_detection.py)):** High-pass SRM residuals across RGB, YCrCb, and HSV color spaces, radial FFT energy profiles, differential JPEG compression errors ($Q \in [50, 95]$), and periodic CFA trace checks.
-5. **Stacking Ensemble ([stacking.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/models/stacking.py)):** Dual-stage learner blending deep non-linear neural representations with gradient boosted trees and logistic meta-regression.
-6. **Calibration Engine ([calibration.py](file:///c:/Users/VAIBHAV/WAGHELA/Desktop/SIGNALSCOPE/src/models/calibration.py)):** L-BFGS temperature scaling to minimize empirical negative log-likelihood (NLL) and prevent overconfident predictions.
+2. **DINOv2 Extractor ([dino_backbone.py](src/features/dino_backbone.py)):** ViT-L/14 with registered PyTorch forward hooks across intermediate transformer blocks 8, 16, 20, and 24.
+3. **Patch Statistics ([patch_statistics.py](src/features/patch_statistics.py)):** Mean, variance, spatial maxima, and 200 sampled patch-pair cosine similarity metrics.
+4. **Forensic Suite ([srm_filters.py](src/features/srm_filters.py), [frequency.py](src/features/frequency.py), [jpeg_ghost.py](src/features/jpeg_ghost.py), [bayer_detection.py](src/features/bayer_detection.py)):** High-pass SRM residuals across RGB, YCrCb, and HSV color spaces, radial FFT energy profiles, differential JPEG compression errors ($Q \in [50, 95]$), and periodic CFA trace checks.
+5. **Stacking Ensemble ([stacking.py](src/models/stacking.py)):** Dual-stage learner blending deep non-linear neural representations with gradient boosted trees and logistic meta-regression.
+6. **Calibration Engine ([calibration.py](src/models/calibration.py)):** L-BFGS temperature scaling to minimize empirical negative log-likelihood (NLL) and prevent overconfident predictions.
 
 ---
 
@@ -132,11 +132,11 @@ We generated two complex, photorealistic images using modern diffusion engines (
 #### Results on Unseen AI Generators:
 1. **Elderly Watchmaker Portrait (Intricate vintage clockwork):**
    - **Base Calibrated Probability:** `0.9894`
-   - **Ensemble Stacking Probability:** **`0.9935` (99.35% AI)** 🔴
+   - **Ensemble Stacking Probability:** **`0.9935` (99.35% AI)**
    - **Verdict:** Confident AI-Generated (`Diffusion-family`)
 2. **Cyberpunk Cat (Wet fur, neon reflections, rain):**
    - **Base Calibrated Probability:** `0.9912`
-   - **Ensemble Stacking Probability:** **`0.9941` (99.41% AI)** 🔴
+   - **Ensemble Stacking Probability:** **`0.9941` (99.41% AI)**
    - **Verdict:** Confident AI-Generated (`Diffusion-family`)
 
 > [!TIP]
@@ -150,8 +150,8 @@ We evaluated a genuine 11 MB uncompressed photograph taken with a modern mobile 
 
 | Test Condition | Image Dimensions | Logit Output | Final Calibrated AI Prob | Classification Result |
 | :--- | :--- | :--- | :--- | :--- |
-| **Native Camera Resolution** | $4000 \times 3000$ (12 MP) | $+2.7142$ | **`99.40%`** | **False Positive (Classified as AI)** ❌ |
-| **Downsampled to CIFAKE Scale**| $32 \times 32$ pixels | $+2.5055$ | **`37.65%`** | **Correctly Classified as Real** ✅ |
+| **Native Camera Resolution** | $4000 \times 3000$ (12 MP) | $+2.7142$ | **`99.40%`** | **False Positive (Classified as AI)** |
+| **Downsampled to CIFAKE Scale**| $32 \times 32$ pixels | $+2.5055$ | **`37.65%`** | **Correctly Classified as Real** |
 
 ---
 
@@ -160,7 +160,7 @@ We evaluated a genuine 11 MB uncompressed photograph taken with a modern mobile 
 Why did an authentic camera photo trigger a high AI probability at full resolution, but immediately pass as real once downsampled to 32×32?
 
 ```
-Real Camera (4000x3000) ──> Resize(518) ──> Sharp sensor noise & high FFT power ──> Model flags as AI ❌
+Real Camera (4000x3000) ──> Resize(518) ──> Sharp sensor noise & high FFT power ──> Model flags as AI [False Positive]
 CIFAKE Real (32x32)     ──> Resize(518) ──> Heavy interpolation blur & low FFT   ──> Model learns blur = Real
 ```
 

@@ -46,7 +46,7 @@ def predict_single(image_path: Path, explain: bool = False, output_dir: str = "o
     with open(image_path, "rb") as f:
         file_bytes = f.read()
 
-    analysis = service.analyze_image(file_bytes, filename=image_path.name)
+    analysis = service.analyze_image(file_bytes, filename=image_path.name, explain=explain)
 
     # Base output structure
     output = {

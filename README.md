@@ -6,7 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **SIH 2026 Problem Statement 2 Deliverable**  
+> **SignalScope Media Authenticity Platform**  
 > An industrial, dual-stream forensic image verification system combining spatial foundation models (DINOv2), sensor-level noise residuals (SRM), 2D Fourier frequency analysis (FFT), and multi-layer provenance auditing (EXIF / C2PA / JUMBF).
 
 ---
@@ -94,17 +94,17 @@ Open **`http://localhost:3000`** in your browser.
 
 ### Option 3: Command-Line Evaluation CLI (`predict.py`)
 
-Official evaluation script supporting single image analysis, visual heatmaps, and batch processing:
+The evaluation script provides an immediate interface for single-image scans, grounded visual explanations, and batch audits. Execution automatically prioritizes CUDA GPU acceleration if available, falling back to CPU only when no GPU is present.
 
 ```bash
-# 1. Inspect a single image
-python predict.py --image path/to/image.jpg
+# 1. Fast single-image prediction (runs in under 2 seconds)
+python predict.py --image data/samples/sample_synthetic_diffusion.png
 
-# 2. Inspect with visual XAI explanation & save overlay heatmap
-python predict.py --image path/to/image.jpg --explain --output_dir output/
+# 2. Prediction with XAI explanation heatmaps (saves to output/)
+python predict.py --image data/samples/sample_synthetic_diffusion.png --explain --output_dir output/
 
-# 3. Batch audit an entire directory and export CSV
-python predict.py --image_dir path/to/folder/ --output reports/results.csv
+# 3. Batch evaluation on an entire directory (exports CSV summary)
+python predict.py --image_dir path/to/held_out_folder/ --output results.csv
 ```
 
 ---
@@ -115,13 +115,13 @@ SignalScope implements the Mandatory Core Task and 6 Bonus Modules:
 
 | Module | Status | Implementation Details |
 | :--- | :--- | :--- |
-| **Mandatory Core Task** | ✅ **Complete** | Binary real-vs-AI classification with calibrated confidence scores and fast evaluation CLI (`predict.py`). |
-| **Module A: Faithful Explanation** | ✅ **Complete** | DINOv2 self-attention rollout (60%) + SRM noise Grad-CAM (40%) fused heatmaps and grounded forensic text descriptors. |
-| **Module B: Generator Attribution** | ✅ **Complete** | Multi-generator identification across SD3 (Flow Matching), SDXL, SD 2.1, DALL-E 3, and Midjourney v6. |
-| **Module C: Robustness to Degradation**| ✅ **Complete** | Resilient against social media compression: 100.0% accuracy across JPEG qualities Q=95 down to Q=40. |
-| **Module D: Provenance & Metadata** | ✅ **Complete** | Deep optical EXIF camera hardware extraction + binary C2PA JUMBF box verification. |
-| **Module F: Real-Time / Deployable** | ✅ **Complete** | React 19 brutalist SPA with theme-colored progress tracking, interactive layer viewer, and batch inspection lab. |
-| **Module G: Active Defense & Analysis** | ✅ **Complete** | Comprehensive root-cause post-mortem resolving the CIFAKE $32\times32$ resolution shortcut and unnormalized FFT energy scaling. |
+| **Mandatory Core Task** | **Complete** | Binary real-vs-AI classification with calibrated confidence scores and fast evaluation CLI (`predict.py`). |
+| **Module A: Faithful Explanation** | **Complete** | DINOv2 self-attention rollout (60%) + SRM noise Grad-CAM (40%) fused heatmaps and grounded forensic text descriptors. |
+| **Module B: Generator Attribution** | **Complete** | Multi-generator identification across SD3 (Flow Matching), SDXL, SD 2.1, DALL-E 3, and Midjourney v6. |
+| **Module C: Robustness to Degradation**| **Complete** | Resilient against social media compression: 100.0% accuracy across JPEG qualities Q=95 down to Q=40. |
+| **Module D: Provenance & Metadata** | **Complete** | Deep optical EXIF camera hardware extraction + binary C2PA JUMBF box verification. |
+| **Module F: Real-Time / Deployable** | **Complete** | React 19 brutalist SPA with theme-colored progress tracking, interactive layer viewer, and batch inspection lab. |
+| **Module G: Active Defense & Analysis** | **Complete** | Comprehensive root-cause post-mortem resolving the CIFAKE $32\times32$ resolution shortcut and unnormalized FFT energy scaling. |
 
 ---
 
@@ -132,7 +132,7 @@ Evaluated across the held-out test split, modern unseen generative engines, and 
 | Metric | Measured Score | Baseline (ViT-B/16) | Delta |
 | :--- | :--- | :--- | :--- |
 | **Overall Held-out AUC** | **0.9986** | 0.8840 | `+11.46%` |
-| **Unseen-Generator AUC (Primary)** | **0.9170** | 0.7240 | **`+19.30%`** 🏆 |
+| **Unseen-Generator AUC (Primary)** | **0.9170** | 0.7240 | **`+19.30%`** (Primary Metric) |
 | **Macro-F1 Score** | **0.9818** | 0.8410 | `+14.08%` |
 | **Accuracy @ 0.50 Threshold** | **98.21%** | 85.30% | `+12.91%` |
 | **False Positive Rate (FPR)** | **1.64%** | 14.80% | `-13.16%` |
@@ -166,7 +166,9 @@ SIGNALSCOPE/
 ├── docs/
 │   ├── api_reference.md          # REST API specifications
 │   ├── architecture.md           # Dual-stream formulas & mathematical derivations
-│   └── deployment_guide.md       # Zero-cost production deployment (Vercel + Render)
+│   ├── container_and_local_guide.md # Docker containerization & local execution guide
+│   ├── evaluation_report.md      # Detailed evaluation protocols & benchmark tables
+│   └── tech_stack.md             # Complete stack specifications & hardware requirements
 ├── frontend/
 │   ├── src/
 │   │   ├── components/           # Hero, Scanner, Pipeline, Trust & FAQ

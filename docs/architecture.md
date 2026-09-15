@@ -22,7 +22,7 @@ SignalScope is an industrial dual-stream forensic pipeline that determines wheth
                                     │ Python Service Adapter
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│          SERVICE & PROVENANCE LAYER (Roles 4 & 5)                     │
+│          SERVICE & PROVENANCE LAYER                                    │
 │   • `app/services/analysis_service.py`: Adapter pattern orchestration │
 │   • `src/metadata/deep_exif.py`: Hardware EXIF & optical lens tags    │
 │   • `src/metadata/exif_auditor.py`: AI generator signature audit       │
@@ -32,7 +32,7 @@ SignalScope is an industrial dual-stream forensic pipeline that determines wheth
                                     │ Scientific feature inputs
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│        UPSTREAM ML BACKBONE & DETECTORS (Roles 1, 2, 3)                │
+│        UPSTREAM ML BACKBONE & DETECTORS                                │
 │   • DINOv2 ViT-L/14 Foundation Backbone (Self-supervised vision)       │
 │   • SRM High-Pass Filter Residuals (Spatial manipulation traces)       │
 │   • Radially-Averaged 2D FFT Power Spectrum (Checkerboard artifacts)  │
@@ -45,4 +45,4 @@ SignalScope is an industrial dual-stream forensic pipeline that determines wheth
   - Primary Production UI: React + Vite + Motion (`frontend/`)
   - Headless / Batch CLI: Python Script (`predict.py`, `scripts/batch_predict.py`)
 - **Domain Contracts**: All layers communicate via strictly typed data models defined in `app/schemas/contracts.py` and `frontend/src/types/signalscope.ts`.
-- **Zero-Leakage Security Policy**: Model weights, feature arrays, datasets, API keys, and video media are excluded via `.gitignore`.
+- **Zero-Leakage Security Policy**: Large experimental checkpoints, feature caches, raw dataset archives, credentials, and video recordings are excluded via `.gitignore` while essential model weights required for inference are versioned.

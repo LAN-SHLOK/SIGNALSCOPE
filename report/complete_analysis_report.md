@@ -1,10 +1,9 @@
-# 🔬 SignalScope: Comprehensive Engineering & Forensic Evolution Report
+# SignalScope: Comprehensive Engineering & Forensic Evolution Report
 ### From Root-Cause Failure to SOTA Multi-Stream Media Authentication
 
-**Project:** SignalScope — Multimodal Media Authenticity Verification  
-**Competition:** Smart India Hackathon (SIH 2026) | Problem Statement 2  
-**Institution:** L. J. Institute of Engineering and Technology [C-433]  
-**Lead Engineer (Role 1):** Vaibhav Waghela  
+**System:** SignalScope — Multimodal Media Authenticity Verification Platform  
+**Domain:** Deep Learning Computer Vision, Digital Media Forensics, Explainable AI  
+**Deployment Target:** Production Containerized & CLI Evaluation Environments  
 
 ---
 
@@ -25,7 +24,7 @@ This report provides a comprehensive post-mortem analysis of:
 ## 2. Deep-Dive Root Cause Analysis: What Was Wrong Before?
 
 ```
-Real Camera (4000×3000) ──► Resize(518) ──► Sharp sensor noise & high FFT power ──► Model flags as AI ❌
+Real Camera (4000×3000) ──► Resize(518) ──► Sharp sensor noise & high FFT power ──► Model flags as AI [False Positive]
 CIFAKE Real (32×32)     ──► Resize(518) ──► Heavy interpolation blur & low FFT   ──► Model learns: Blur = Real
 ```
 
@@ -69,14 +68,14 @@ graph TD
 
 ---
 
-### 🔹 Iteration 0: The Naive Baseline
+### Iteration 0: The Naive Baseline
 - **Training Data:** 2,000 CIFAKE samples (1,000 Real CIFAR-10, 1,000 Fake SD 1.4).
 - **Architecture:** Basic DINOv2 CLS tokens + raw FFT + uncalibrated MLP.
 - **Flaws:** Overfitted to resolution shortcuts; failed on all modern real-world smartphone photos.
 
 ---
 
-### 🔹 Iteration 1: Mathematical & Signal Invariance
+### Iteration 1: Mathematical & Signal Invariance
 - **File Modified:** `src/features/frequency.py` & `src/features/feature_pipeline.py`
 - **Improvements Made:**
   1. **Standardized Spatial Preprocessing:** All images downscaled using area-relation interpolation (`cv2.INTER_AREA` for downsampling high-res photos, `cv2.INTER_CUBIC` for upsampling) to a fixed $518\times518$ canvas before computing FFT or SRM noise residuals.
@@ -88,7 +87,7 @@ $$X(u, v) = \frac{1}{\sqrt{H \cdot W}} \sum_{x=0}^{H-1} \sum_{y=0}^{W-1} f(x, y)
 
 ---
 
-### 🔹 Iteration 2: Multi-Domain Calibration & Hardware Provenance
+### Iteration 2: Multi-Domain Calibration & Hardware Provenance
 - **Files Created/Modified:** `src/metadata/exif_parser.py`, `src/metadata/c2pa_checker.py`, `src/models/calibration.py`, `src/models/stacking.py`, `model/predict.py`
 - **Improvements Made:**
   1. **Multi-Domain Training Cache:** Added 308 multi-domain samples (real smartphone photo crops, uncompressed landscape/portrait photography from Hemg dataset, modern generative art) oversampled $4\times$.
@@ -99,7 +98,7 @@ $$X(u, v) = \frac{1}{\sqrt{H \cdot W}} \sum_{x=0}^{H-1} \sum_{y=0}^{W-1} f(x, y)
 
 ---
 
-### 🔹 Iteration 3: Faithful Explainability Engine (Module A)
+### Iteration 3: Faithful Explainability Engine (Module A)
 - **Files Created:** `src/explain/attention_rollout.py`, `src/explain/gradcam.py`, `src/explain/heatmap_fusion.py`, `src/explain/cue_descriptors.py`
 - **Improvements Made:**
   1. **Attention Rollout:** Tracked self-attention and patch token variance across all 24 layers of DINOv2 ViT-L/14 to map semantic regions of interest.
@@ -109,7 +108,7 @@ $$X(u, v) = \frac{1}{\sqrt{H \cdot W}} \sum_{x=0}^{H-1} \sum_{y=0}^{W-1} f(x, y)
 
 ---
 
-### 🔹 Iteration 4: Joint Continual Learning with Defactify Image Dataset
+### Iteration 4: Joint Continual Learning with Defactify Image Dataset
 - **Files Created:** `model/extract_defactify_features.py`, `model/train_joint.py`, `tests/verify_joint_model.py`, `tests/test_unseen_defactify.py`
 - **Dataset Citation & Source:** [Defactify Image Dataset (`Rajarshi-Roy-research/Defactify_Image_Dataset`)](https://huggingface.co/datasets/Rajarshi-Roy-research/Defactify_Image_Dataset), released on Hugging Face by Rajarshi Roy Research (MIT/Open License). Contains diverse MS-COCO authentic images paired with multi-generator synthetic counterparts across modern models.
 - **The Challenge:** Incorporating 1,600 samples from the Defactify dataset without inducing **Catastrophic Forgetting** of CIFAKE or previously learned smartphone photo distributions.
@@ -128,20 +127,20 @@ $$X(u, v) = \frac{1}{\sqrt{H \cdot W}} \sum_{x=0}^{H-1} \sum_{y=0}^{W-1} f(x, y)
 
 | Metric / Evaluation Target | Iteration 0 (Baseline) | Iteration 1 (Signal Invariant) | Iteration 2 (Multi-Domain + EXIF) | Iteration 4 (Joint Defactify) |
 |---|---|---|---|---|
-| **Joint Dataset Val AUC** | ~0.9400 | ~0.9650 | 0.9934 | **0.9986** 🏆 |
-| **Joint Dataset Accuracy** | 88.50% | 91.20% | 96.00% | **98.21%** 🏆 |
-| **Macro-F1 Score** | 0.8842 | 0.9118 | 0.9605 | **0.9818** 🏆 |
-| **Real Smartphone Photo (12MP)** | ❌ 99.41% (False AI) | ⚠️ 58.20% (Uncertain) | ✅ 0.45% (Real) | ✅ **0.26% (Real)** 🏆 |
-| **Unseen Real Photos (Hemg/COCO)** | ❌ 82.30% (False AI) | ⚠️ 35.10% (Uncertain) | ✅ 0.34% (Real) | ✅ **0.26% (Real)** 🏆 |
-| **Modern AI: Elderly Watchmaker** | ⚠️ 88.20% (Weak AI) | ✅ 94.50% (AI) | ✅ 99.70% (AI) | ✅ **99.70% (AI)** 🏆 |
-| **Modern AI: Cyberpunk Neon Cat** | ⚠️ 89.10% (Weak AI) | ✅ 95.10% (AI) | ✅ 99.71% (AI) | ✅ **99.72% (AI)** 🏆 |
-| **Unseen Defactify Test Stream** | ❌ ~52.0% (Random) | ⚠️ 64.0% (Poor) | ⚠️ 78.5% (Moderate) | ✅ **91.70% (SOTA)** 🏆 |
-| **JPEG Degradation Q=40 Accuracy** | ❌ 61.20% (Degraded) | ⚠️ 82.00% (Moderate) | ✅ 100.0% (Robust) | ✅ **100.0% (Robust)** 🏆 |
-| **Expected Calibration Error (ECE)** | 0.1420 (High error) | 0.0810 (Moderate) | 0.0234 (Low error) | **0.0185 (Calibrated)** 🏆 |
+| **Joint Dataset Val AUC** | ~0.9400 | ~0.9650 | 0.9934 | **0.9986** |
+| **Joint Dataset Accuracy** | 88.50% | 91.20% | 96.00% | **98.21%** |
+| **Macro-F1 Score** | 0.8842 | 0.9118 | 0.9605 | **0.9818** |
+| **Real Smartphone Photo (12MP)** | 99.41% (False AI) | 58.20% (Uncertain) | 0.45% (Real) | **0.26% (Real)** |
+| **Unseen Real Photos (Hemg/COCO)** | 82.30% (False AI) | 35.10% (Uncertain) | 0.34% (Real) | **0.26% (Real)** |
+| **Modern AI: Elderly Watchmaker** | 88.20% (Weak AI) | 94.50% (AI) | 99.70% (AI) | **99.70% (AI)** |
+| **Modern AI: Cyberpunk Neon Cat** | 89.10% (Weak AI) | 95.10% (AI) | 99.71% (AI) | **99.72% (AI)** |
+| **Unseen Defactify Test Stream** | ~52.0% (Random) | 64.0% (Poor) | 78.5% (Moderate) | **91.70% (SOTA)** |
+| **JPEG Degradation Q=40 Accuracy** | 61.20% (Degraded) | 82.00% (Moderate) | 100.0% (Robust) | **100.0% (Robust)** |
+| **Expected Calibration Error (ECE)** | 0.1420 (High error) | 0.0810 (Moderate) | 0.0234 (Low error) | **0.0185 (Calibrated)** |
 
 ---
 
-### B. Official SIH 2026 Model Report (Section 7.3 Contract)
+### B. Official Forensic Model Report (Section 7.3 Specification)
 
 | Specification Field | Declared Implementation & Measured Result |
 | :--- | :--- |
@@ -171,10 +170,10 @@ $$X(u, v) = \frac{1}{\sqrt{H \cdot W}} \sum_{x=0}^{H-1} \sum_{y=0}^{W-1} f(x, y)
 
 ### D. Responsible Decision-Making & Abstention
 - By incorporating Temperature Scaling ($T=1.4444$) and a 3-Tier Verdict System:
-  - High confidence ($> 75\%$): `🔴 Likely AI-generated`
-  - Low confidence ($< 25\%$): `🟢 Likely authentic`
-  - Ambiguous range ($25\% – 75\%$): `🟡 Uncertain — human review recommended`
-- The system **never over-claims certainty on ambiguous inputs**, fulfilling the SIH 2026 ethical guidelines for responsible forensic AI.
+  - High confidence ($> 75\%$): `Likely AI-generated`
+  - Low confidence ($< 25\%$): `Likely authentic`
+  - Ambiguous range ($25\% – 75\%$): `Uncertain — human review recommended`
+- The system **never over-claims certainty on ambiguous inputs**, fulfilling ethical guidelines for responsible forensic AI.
 
 ---
 
