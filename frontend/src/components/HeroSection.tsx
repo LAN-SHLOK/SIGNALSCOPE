@@ -82,7 +82,8 @@ export const HeroSection: React.FC = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="font-poster text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[8rem] leading-[0.88] tracking-tight uppercase text-black"
+            // Added inline-block, scale-x-[1.2], and origin-left
+            className="inline-block origin-left scale-x-[1.2] font-poster text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[8rem] leading-[0.88] tracking-tight uppercase text-black"
           >
             SIGNAL<br />
             SCOPE
