@@ -237,4 +237,8 @@ python tests/verify_joint_model.py
 
 Distributed under the MIT License. See `LICENSE` for details.
 
+## 🎥 Demo Video
+
+[Watch the SignalScope Demo Video (Google Drive)](https://drive.google.com/file/d/1LXTFn4sW3UaR9t7JlXZJAEA2REPD-q6u/view?usp=drive_link)
+
 
