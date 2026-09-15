@@ -120,7 +120,9 @@ class AnalysisService:
 
     def _check_models_available(self):
         """Check if weights and model predict interface are available."""
-        weights_path = Path("weights/detector.pth")
+        weights_path = Path("model/weights/detector.pth")
+        if not weights_path.exists():
+            weights_path = Path("weights/detector.pth")
         predict_script = Path("model/predict.py")
         if weights_path.exists() and predict_script.exists():
             self.weights_ready = True
@@ -169,35 +171,57 @@ class AnalysisService:
         # 3. Heatmap extraction
         heatmap_norm = _generate_saliency_heatmap(np_gray)
 
-        # 4. Model Inference or High-Fidelity Scientific Assessment
+        # 4. Model Inference: Full Deep Learning Foundation Stream or Fallback
         raw_confidence = 0.50
         generator_family = "Unknown"
+        ml_computed = False
 
-        # Evaluate forensic indicators for baseline confidence
-        if meta_report.is_ai_software_detected or meta_report.c2pa_status == "VALID_AI_CREDENTIAL":
-            raw_confidence = 0.96
-            generator_family = "Diffusion-family"
-        elif meta_report.trust_signal == "STRONG_AUTHENTIC" or meta_report.trust_signal == "LIKELY_AUTHENTIC_HARDWARE":
-            raw_confidence = 0.08
-            generator_family = "Camera / Real"
-        else:
-            # Analyze frequency spectrum falloff
-            high_freq_energy = float(np.mean(azimuthal_curve[-32:])) if len(azimuthal_curve) >= 32 else 0.5
-            low_freq_energy = float(np.mean(azimuthal_curve[:16])) if len(azimuthal_curve) >= 16 else 1.0
-            freq_ratio = high_freq_energy / (low_freq_energy + 1e-6)
+        if self.weights_ready:
+            try:
+                import tempfile
+                ext = Path(filename).suffix or ".jpg"
+                with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+                    tmp.write(image_bytes)
+                    tmp_path = tmp.name
 
-            # AI images often have unusually sharp high-freq residual cutoff or spikes
-            if freq_ratio > 0.45 or not has_bayer:
-                raw_confidence = 0.78
-                generator_family = "Diffusion-family" if freq_ratio > 0.50 else "GAN-family"
-            else:
-                raw_confidence = 0.22
+                try:
+                    from model.predict import predict as ml_predict
+                    ml_res = ml_predict(tmp_path, explain=True, use_tta=use_tta)
+                    if ml_res and "confidence" in ml_res and "error" not in ml_res:
+                        raw_confidence = float(ml_res["confidence"])
+                        generator_family = ml_res.get("generator_family", "Unknown")
+                        ml_computed = True
+                finally:
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
+            except Exception:
+                ml_computed = False
+
+        if not ml_computed:
+            # Evaluate forensic indicators for baseline confidence
+            if meta_report.is_ai_software_detected or meta_report.c2pa_status == "VALID_AI_CREDENTIAL":
+                raw_confidence = 0.96
+                generator_family = "Diffusion-family"
+            elif meta_report.trust_signal == "STRONG_AUTHENTIC" or meta_report.trust_signal == "LIKELY_AUTHENTIC_HARDWARE":
+                raw_confidence = 0.08
                 generator_family = "Camera / Real"
+            else:
+                # Analyze frequency spectrum falloff
+                high_freq_energy = float(np.mean(azimuthal_curve[-32:])) if len(azimuthal_curve) >= 32 else 0.5
+                low_freq_energy = float(np.mean(azimuthal_curve[:16])) if len(azimuthal_curve) >= 16 else 1.0
+                freq_ratio = high_freq_energy / (low_freq_energy + 1e-6)
 
-        # Apply TTA smoothing simulation if enabled
-        if use_tta:
-            # TTA slightly tightens confidence towards certainty or flags variance
-            raw_confidence = float(np.clip(raw_confidence * 1.02 if raw_confidence > 0.5 else raw_confidence * 0.95, 0.01, 0.99))
+                # AI images often have unusually sharp high-freq residual cutoff or spikes
+                if freq_ratio > 0.45 or not has_bayer:
+                    raw_confidence = 0.78
+                    generator_family = "Diffusion-family" if freq_ratio > 0.50 else "GAN-family"
+                else:
+                    raw_confidence = 0.22
+                    generator_family = "Camera / Real"
+
+            # Apply TTA smoothing simulation if enabled
+            if use_tta:
+                raw_confidence = float(np.clip(raw_confidence * 1.02 if raw_confidence > 0.5 else raw_confidence * 0.95, 0.01, 0.99))
 
         # 5. Fuse CV prediction with Provenance
         calibrated_conf, final_label, action_note = fuse_cv_with_provenance(raw_confidence, meta_report)

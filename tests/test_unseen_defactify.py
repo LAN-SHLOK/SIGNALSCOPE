@@ -10,9 +10,11 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+import pytest
 from datasets import load_dataset
 from model.predict import predict
 
+@pytest.mark.network
 def test_defactify_unseen():
     print("=" * 65)
     print("TESTING ON UNSEEN DEFACTIFY (MS COCOAI) TEST SPLIT")

@@ -54,4 +54,7 @@ target-version = "py310"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short -m 'not network'"
+markers = [
+    "network: marks tests requiring external live streaming from Hugging Face datasets",
+]
