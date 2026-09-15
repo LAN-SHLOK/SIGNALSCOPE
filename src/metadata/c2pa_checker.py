@@ -143,3 +143,7 @@ def check_c2pa_provenance(image_source: Any) -> Dict[str, Any]:
 
     # Method 2: High-speed binary inspector
     return _inspect_jumbf_binary(raw_bytes)
+
+
+# Alias for backward-compatibility with predict modules
+check_c2pa_credentials = check_c2pa_provenance

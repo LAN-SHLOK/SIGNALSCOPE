@@ -96,9 +96,25 @@ def fuse_cv_with_provenance(
             return adjusted_conf, "Uncertain — Forensic Conflict", action_note
 
     # Case 3: Complete camera hardware profile without anomalies
-    if metadata_report.trust_signal == "LIKELY_AUTHENTIC_HARDWARE" and cv_confidence < 0.40:
-        adjusted_conf = cv_confidence * 0.85
-        action_note = f"Authentic Profile: Consistent hardware tags ({metadata_report.camera_make} {metadata_report.camera_model})."
+    if metadata_report.trust_signal in ("LIKELY_AUTHENTIC_HARDWARE", "STRONG_AUTHENTIC"):
+        cam_info = f"{metadata_report.camera_make or ''} {metadata_report.camera_model or ''}".strip() or "Camera"
+        if cv_confidence >= 0.75:
+            # Forensic Conflict: Authentic optical camera hardware profile verified, but visual stream
+            # flagged surface smoothing/compression typical of smartphone front-camera computational beauty/HDR processing.
+            adjusted_conf = 0.50
+            action_note = (
+                f"Forensic Conflict: Hardware tags verified authentic ({cam_info}), but visual model "
+                f"detected surface smoothing/noise anomalies typical of smartphone front-camera computational beauty/HDR processing. Human review recommended."
+            )
+            return adjusted_conf, "Uncertain — Forensic Conflict", action_note
+        elif cv_confidence >= 0.35:
+            adjusted_conf = cv_confidence * 0.40
+            action_note = f"Authentic Profile: Consistent hardware tags ({cam_info})."
+            return adjusted_conf, "Authentic Real", action_note
+        else:
+            adjusted_conf = min(0.05, cv_confidence * 0.5)
+            action_note = f"Authentic Profile: Consistent hardware tags ({cam_info})."
+            return adjusted_conf, "Authentic Real", action_note
 
     # Case 4: Stripped metadata
     elif metadata_report.trust_signal == "SUSPICIOUS_STRIPPED":

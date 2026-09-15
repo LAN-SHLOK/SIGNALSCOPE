@@ -91,13 +91,21 @@ def generate_explanation(
 
         if has_ai_tag:
             cues.append(f"Digital metadata contains AI generator tags ({metadata.get('ai_tool_detected', 'Generative tool')}).")
+        elif has_cam:
+            cues.append(f"Camera hardware profile verified: {metadata.get('camera_make', 'Camera')} {metadata.get('camera_model', '')} (ISO {metadata.get('iso', 'N/A')}, f/{metadata.get('f_number', 'N/A')}).")
         elif not metadata.get("has_exif"):
             cues.append("File lacks optical camera hardware metadata (Make, Model, Lens, Shutter).")
 
-        summary = (
-            f"The image exhibits synthetic visual cues with {confidence*100:.1f}% confidence. "
-            f"Highlighted regions in the {loc_str} demonstrate texture and noise patterns typical of modern diffusion models."
-        )
+        if has_cam and confidence <= 0.60:
+            summary = (
+                f"Forensic Conflict: Authentic camera hardware profile verified ({metadata.get('camera_make', '')} {metadata.get('camera_model', '')}), "
+                f"while visual model detected surface smoothing and noise reduction typical of smartphone front-camera computational processing."
+            )
+        else:
+            summary = (
+                f"The image exhibits synthetic visual cues with {confidence*100:.1f}% confidence. "
+                f"Highlighted regions in the {loc_str} demonstrate texture and noise patterns typical of modern diffusion models."
+            )
     else:
         # Authentic media
         if has_cam:

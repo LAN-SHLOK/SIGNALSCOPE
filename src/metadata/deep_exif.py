@@ -131,12 +131,14 @@ def extract_deep_exif(image_source: Any) -> Dict[str, Any]:
         focal = raw_tags.get("FocalLength")
         focal_str = f"{focal}mm" if focal is not None else None
 
+        clean_str = lambda s: str(s).replace('\x00', '').strip() if s is not None else None
+
         return {
             "has_exif": has_exif or bool(png_info),
             "tag_count": len(raw_tags) + len(png_info),
-            "camera_make": raw_tags.get("Make"),
-            "camera_model": raw_tags.get("Model"),
-            "software": raw_tags.get("Software"),
+            "camera_make": clean_str(raw_tags.get("Make")),
+            "camera_model": clean_str(raw_tags.get("Model")),
+            "software": clean_str(raw_tags.get("Software")),
             "datetime_original": raw_tags.get("DateTimeOriginal") or raw_tags.get("DateTime"),
             "exposure_time": exp_str,
             "f_number": raw_tags.get("FNumber"),

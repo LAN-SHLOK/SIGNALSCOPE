@@ -255,7 +255,10 @@ class AnalysisService:
             badge_text = "UNCERTAIN"
             badge_color = "#FFE600"  # Cyber Yellow
             icon = "[UNCERTAIN]"
-            user_action = "The forensic model cannot definitively categorize this image. Expert human review recommended."
+            user_action = action_note or "The forensic model cannot definitively categorize this image. Expert human review recommended."
+
+        if tier == VerdictTier.CONFIDENT_REAL or (tier == VerdictTier.UNCERTAIN and meta_report.trust_signal in ("LIKELY_AUTHENTIC_HARDWARE", "STRONG_AUTHENTIC")):
+            generator_family = "Real Camera"
 
         verdict_res = VerdictResult(
             label=final_label,

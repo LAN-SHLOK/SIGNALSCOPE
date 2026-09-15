@@ -211,8 +211,12 @@ def predict(image_path: str, explain: bool = False, use_tta: bool = False, devic
         elif prov_tier == "camera_verified" or metadata.get("c2pa_details", {}).get("is_camera_declared"):
             # Verified camera hardware provenance (Make, Model, Lens, Shutter, ISO)
             # Shields authentic photography from false AI flags
-            hardware_discount = 0.40 * prov_score
-            final_confidence = max(0.015, final_confidence - hardware_discount)
+            if final_confidence >= 0.75:
+                # Forensic Conflict: Authentic camera hardware verified, but visual model flagged front-camera smoothing
+                final_confidence = 0.50  # Responsible Uncertain tier
+            else:
+                hardware_discount = 0.40 * prov_score
+                final_confidence = max(0.015, final_confidence - hardware_discount)
 
         # Verdict
         label = "AI-generated" if final_confidence > 0.5 else "Real"

@@ -127,14 +127,19 @@ def _format_analysis_to_frontend(resp: AnalysisResponse, raw_bytes: bytes, image
     is_ai = resp.verdict.tier == VerdictTier.CONFIDENT_AI
     is_real = resp.verdict.tier == VerdictTier.CONFIDENT_REAL
 
-    # Translate C2PA status
-    c2pa_map = {
-        "VALID_AUTHENTIC": ("valid", "Strong Provenance"),
-        "VALID_AI_CREDENTIAL": ("valid", "AI Manifest Detected"),
-        "TAMPERED": ("invalid", "Conflicting Signals"),
-        "NOT_FOUND": ("none", "No Provenance"),
-    }
-    val_status, trust_sig = c2pa_map.get(resp.metadata.c2pa_status, ("none", "No Provenance"))
+    # Translate C2PA & Hardware Provenance status
+    if resp.metadata.c2pa_status == "VALID_AI_CREDENTIAL":
+        val_status, trust_sig = "valid", "AI Manifest Detected"
+    elif resp.metadata.c2pa_status == "TAMPERED":
+        val_status, trust_sig = "invalid", "Conflicting Signals"
+    elif resp.metadata.c2pa_status == "VALID_AUTHENTIC":
+        val_status, trust_sig = "valid", "Strong Provenance"
+    elif resp.metadata.trust_signal in ("LIKELY_AUTHENTIC_HARDWARE", "STRONG_AUTHENTIC"):
+        val_status, trust_sig = "valid", "Strong Provenance"
+    elif resp.metadata.has_exif and (resp.metadata.camera_make or resp.metadata.camera_model):
+        val_status, trust_sig = "valid", "Strong Provenance"
+    else:
+        val_status, trust_sig = "none", "No Provenance"
 
     # Convert cues into frontend format
     formatted_cues = []

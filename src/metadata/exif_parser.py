@@ -20,6 +20,22 @@ def extract_exif_signals(image_source: Any) -> Dict[str, Any]:
     exif_data = extract_deep_exif(image_source)
     audit_data = audit_metadata(exif_data)
     
+    has_cam = audit_data.get("has_authentic_camera_tags", False)
+    is_ai = audit_data.get("is_ai_software_detected", False)
+    
+    if is_ai:
+        prov_tier = "ai_watermark_detected"
+        prov_score = 1.0
+    elif has_cam:
+        prov_tier = "camera_verified"
+        prov_score = 1.0
+    elif not exif_data.get("has_exif", False):
+        prov_tier = "stripped"
+        prov_score = 0.0
+    else:
+        prov_tier = "neutral"
+        prov_score = 0.5
+
     return {
         "has_exif": exif_data.get("has_exif", False),
         "camera_make": exif_data.get("camera_make"),
@@ -31,10 +47,12 @@ def extract_exif_signals(image_source: Any) -> Dict[str, Any]:
         "iso": exif_data.get("iso"),
         "focal_length": exif_data.get("focal_length"),
         "gps_coords": exif_data.get("gps_coords"),
-        "is_ai_software_detected": audit_data.get("is_ai_software_detected", False),
+        "is_ai_software_detected": is_ai,
         "detected_ai_software": audit_data.get("detected_ai_software", []),
         "anomalies": audit_data.get("anomalies", []),
-        "has_authentic_camera_tags": audit_data.get("has_authentic_camera_tags", False),
+        "has_authentic_camera_tags": has_cam,
+        "provenance_tier": prov_tier,
+        "provenance_score": prov_score,
         "raw_tags": exif_data.get("raw_tags", {}),
     }
 
