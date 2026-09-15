@@ -713,7 +713,11 @@ export const ScannerSection: React.FC = () => {
                     }`}>
                       <div className="flex items-center justify-between text-xs font-mono-code font-bold uppercase tracking-widest mb-2 text-neutral-800">
                         <span>DETECTION VERDICT</span>
-                        <span>{(analyzedImage.confidence * 100).toFixed(0)}% CONFIDENCE</span>
+                        <span>
+                          {analyzedImage.verdictTier === 'confident_real'
+                            ? `${((1 - analyzedImage.confidence) * 100).toFixed(0)}% CONFIDENCE`
+                            : `${(analyzedImage.confidence * 100).toFixed(0)}% CONFIDENCE`}
+                        </span>
                       </div>
 
                       <div className="flex items-center gap-3 mb-2">
@@ -746,7 +750,13 @@ export const ScannerSection: React.FC = () => {
                               ? 'bg-emerald-600'
                               : 'bg-amber-600'
                           }`}
-                          style={{ width: `${analyzedImage.confidence * 100}%` }}
+                          style={{
+                            width: `${
+                              analyzedImage.verdictTier === 'confident_real'
+                                ? (1 - analyzedImage.confidence) * 100
+                                : analyzedImage.confidence * 100
+                            }%`
+                          }}
                         />
                       </div>
                     </div>
